@@ -16,9 +16,9 @@
 #include <stdbool.h>
 #include "fsDirectory.h"
 
-
+#define NUM_ENTRY 50 
 //280 bytes total
-st_dir newRoot = malloc(numDirectoryEntry);
+st_dir newRoot;
 
 int makeRoot(){
     
@@ -35,10 +35,10 @@ int makeRoot(){
 
     newRoot->parentId = 0;
 
-
+    printf("HELLO\n");
     newRoot->location;
     newRoot->numFilesInside;
-
+    
     return 0;
 }
 

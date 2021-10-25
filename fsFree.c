@@ -42,7 +42,6 @@ struct st_block *initializeFreeSpace(st_vcb *sVCB, int blockSize, int numberOfBl
         printf("Error while mallocing first block\n");
         return (NULL);
     }
-    printf("FREEEE\n");
     sBlock->isFree = 1;
     sBlock->location = 1;
     sBlock->next = NULL;

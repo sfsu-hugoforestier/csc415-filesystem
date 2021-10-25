@@ -25,6 +25,7 @@
 #include "mfs.h"
 #include "vcb.h"
 #include "fsFree.h"
+#include "fsDirectory.c"
 
 void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
     sVCB->blockSize = blockSize;
@@ -75,7 +76,7 @@ st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize) {
     printf ("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
     st_vcb *sVCB = checkIfVolumeExists(numberOfBlocks, blockSize);
-
+    int result = makeRoot();
     if (sVCB == NULL) {
         return (-1);
     }
