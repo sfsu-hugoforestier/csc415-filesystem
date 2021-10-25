@@ -1,3 +1,15 @@
+/**************************************************************
+* Class:  CSC-415
+* Name: FORESTIER Hugo
+* Student ID: 922296112
+* Project: Basic File System
+*
+* File: fsFree.h
+*
+* Description:
+* File where we create our block structure
+*
+**************************************************************/
 #ifndef FSFREE_H_
 #define FSFREE_H_
 

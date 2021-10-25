@@ -1,3 +1,15 @@
+/**************************************************************
+* Class:  CSC-415
+* Name: FORESTIER Hugo
+* Student ID: 922296112
+* Project: Basic File System
+*
+* File: fsFree.c
+*
+* Description:
+* File where we manage our blocks
+*
+**************************************************************/
 #include "fsFree.h"
 #include "fsLow.h"
 #include <stdio.h>
@@ -12,6 +24,8 @@ void addNewBlockToEnd(struct st_block **head, int isFree, int location) {
     }
 
     struct st_block *lBlock = *head;
+    // Loop until the end of our linked list, in order to add a new node at
+    // the end
     while (lBlock->next != NULL) {
         lBlock = lBlock->next;
     }
@@ -23,13 +37,17 @@ void addNewBlockToEnd(struct st_block **head, int isFree, int location) {
 
 int freeBlock(struct st_block **head, int location) {
     struct st_block *lBlock = *head;
+    // Make sure that if we stop by checking if next != NULL. In case Location
+    // is unknown
     while (lBlock->next != NULL || lBlock->location != location) {
         lBlock = lBlock->next;
     }
+    // Return an error if we can't free the block
     if (lBlock->next == NULL) {
         printf("Error while trying to free the block. Location out of range\n");
         return (-1);
     }
+    // The block is now free
     lBlock->isFree = 0;
     return (0);
 }
@@ -38,6 +56,7 @@ struct st_block *initializeFreeSpace(st_vcb *sVCB, int blockSize, int numberOfBl
     struct st_block *sBlock = malloc(sizeof(struct st_block));
     int nbBlocksWrote = 0;
 
+    // We initialize our block function, and write it to block 1
     if (sBlock == NULL) {
         printf("Error while mallocing first block\n");
         return (NULL);

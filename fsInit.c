@@ -25,6 +25,7 @@
 #include "mfs.h"
 #include "vcb.h"
 #include "fsFree.h"
+#include "fsDirectory.h"
 
 void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
     sVCB->blockSize = blockSize;
@@ -37,11 +38,14 @@ st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
     int nbBlocksWrote = 0;
     st_vcb *rVCB = malloc(blockSize);
 
-    initializeVCB(rVCB, numberOfBlocks, blockSize); // TO ADD IN checkIfVolumeExists mby
-    rVCB->next = initializeFreeSpace(rVCB, blockSize, numberOfBlocks); // TO ADD IN checkIfVolumeExists mby
+    // Maje sure that our vcb structure is correctly filled
+    initializeVCB(rVCB, numberOfBlocks, blockSize);
+    // We initialize our first block, and link the vcb structure to block 0
+    rVCB->next = initializeFreeSpace(rVCB, blockSize, numberOfBlocks);
     if (rVCB->next == NULL)
         return (NULL);
-    // initializeDirectory();
+    initializeDirectory();
+    // Write the vcb to block 0
     nbBlocksWrote = LBAwrite(rVCB, 1, 0);
     if (nbBlocksWrote == -1) {
         printf("Error while writing\n");
@@ -59,11 +63,13 @@ st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
         return (NULL);
     }
 
+    // Try to fetch an existing volume by reading block 0.
     uint64_t rvRead = LBAread(sVCB, 1, 0);
     if (rvRead == -1) {
         printf("Error while reading\n");
         return (NULL);
     }
+    // Here we find out if we need to create a new volume or not
     if (sVCB->signature == PART_SIGNATURE) {
         printf("Not formatting\n");
         return (sVCB);
@@ -75,6 +81,7 @@ st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
 
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize) {
     printf ("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
+    // Check if a volume already exists. If it doesn't we will create a new one
     st_vcb *sVCB = checkIfVolumeExists(numberOfBlocks, blockSize);
 
     if (sVCB == NULL) {
