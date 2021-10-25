@@ -26,12 +26,35 @@
 #include "vcb.h"
 #include "fsFree.h"
 
+//#define BLOCK_SIZE 512
+
+int initialized = 0;
+st_vcb *sVCB;
+fdDir *fileDir;
 
 void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
     sVCB->blockSize = blockSize;
     sVCB->signature = PART_SIGNATURE;
     sVCB->freeBlockSize = numberOfBlocks;
     sVCB->numberOfBlocks = numberOfBlocks;
+    initialized = 1;
+}
+
+void initDir(){
+    int dirSize = 280; //not actual directory size
+    int dirEntry = 50;
+    int totalSize = dirSize * dirEntry;
+    int numBlocks = totalSize/sVCB->blockSize;
+
+    fileDir = calloc(numBlocks,sVCB->blockSize);
+    uint64_t totalBlocks = LBAread(fileDir, numBlocks, fileDir->directoryStartLocation);
+    //printf("READ - %ld\n",fileDir->directoryStartLocation);
+    //printf("SIZEOF - %ld\n",sizeof(sVCB->numberOfBlocks));
+    
+    if(totalBlocks != numBlocks){
+        printf("ERROR\n");
+        exit(1);
+    }
 }
 
 st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
@@ -52,7 +75,7 @@ st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
 }
 
 st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
-    st_vcb *sVCB = malloc(blockSize);
+     sVCB = malloc(blockSize);
 
     if (sVCB == NULL) {
         printf("Error while mallocing sVCB\n");
@@ -65,24 +88,25 @@ st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
         return (NULL);
     }
     if (sVCB->signature == PART_SIGNATURE) {
+        printf("Not formatting\n");
+        return (sVCB);
+    } else {
         printf("Formatting...\n");
         return (formatVolume(blockSize, numberOfBlocks));
-
-    } else {
-        
     }
 }
+
 
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize) {
     printf ("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
-    st_vcb *sVCB = checkIfVolumeExists(numberOfBlocks, blockSize);
-    int result = makeRoot();
+
+    sVCB = checkIfVolumeExists(numberOfBlocks, blockSize);
     if (sVCB == NULL) {
         return (-1);
     }
+    initDir();
     return (0);
 }
-
 
 void exitFileSystem () {
     printf ("System exiting\n");

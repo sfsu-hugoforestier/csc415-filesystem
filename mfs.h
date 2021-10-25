@@ -52,7 +52,14 @@ typedef struct
 	unsigned short  d_reclen;		/*length of this record */
 	unsigned short	dirEntryPosition;	/*which directory entry position, like file pos */
 	uint64_t	directoryStartLocation;		/*Starting LBA of directory */
+	int id; //number to track file, use instead of name -4Bytes
+	int parentId; //-4Bytes
+	time_t creationDate; //-8 bytes
+	time_t lastModDate; //-8 bytes
+	time_t lastAccess; //-8 bytes
 	} fdDir;
+
+void initDir();
 
 // Key directory functions
 int fs_mkdir(const char *pathname, mode_t mode);
