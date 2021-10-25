@@ -11,13 +11,14 @@
 * Description:
 *
 **************************************************************/
+#ifndef FSDIRECTORY_H_
+#define FSDIRECTORY_H_
 
 #define BLOCK_SIZE 512
 #define directorySize 295
 #define numDirectoryEntry 50 
 
-#ifndef FSDIRECTORY_H_
-#define FSDIRECTORY_H_
+
 typedef struct dir{
     char name[255];  // The name of the directory -255 Bytes
 	int location; // Where we are -4Bytes

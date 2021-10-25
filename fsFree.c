@@ -1,7 +1,8 @@
-#include "fsFree.h"
-#include "fsLow.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "fsFree.h"
+#include "fsLow.h"
+
 
 void addNewBlockToEnd(struct st_block **head, int isFree, int location) {
     struct st_block *nBlock = malloc(sizeof(struct st_block));

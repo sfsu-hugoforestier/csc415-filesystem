@@ -25,7 +25,7 @@
 #include "mfs.h"
 #include "vcb.h"
 #include "fsFree.h"
-#include "fsDirectory.c"
+
 
 void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
     sVCB->blockSize = blockSize;
