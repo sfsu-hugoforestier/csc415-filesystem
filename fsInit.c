@@ -36,7 +36,6 @@ void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
 st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
     int nbBlocksWrote = 0;
     st_vcb *rVCB = malloc(blockSize);
-
     initializeVCB(rVCB, numberOfBlocks, blockSize); // TO ADD IN checkIfVolumeExists mby
     rVCB->next = initializeFreeSpace(rVCB, blockSize, numberOfBlocks); // TO ADD IN checkIfVolumeExists mby
     if (rVCB->next == NULL)
@@ -65,11 +64,11 @@ st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
         return (NULL);
     }
     if (sVCB->signature == PART_SIGNATURE) {
-        printf("Not formatting\n");
-        return (sVCB);
-    } else {
         printf("Formatting...\n");
         return (formatVolume(blockSize, numberOfBlocks));
+
+    } else {
+        
     }
 }
 
