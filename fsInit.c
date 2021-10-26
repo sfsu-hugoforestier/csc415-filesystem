@@ -37,14 +37,18 @@ void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
 st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
     int nbBlocksWrote = 0;
     st_vcb *rVCB = malloc(blockSize);
+    struct st_block *sBlock = NULL;
 
     // Maje sure that our vcb structure is correctly filled
     initializeVCB(rVCB, numberOfBlocks, blockSize);
     // We initialize our first block, and link the vcb structure to block 0
-    rVCB->next = initializeFreeSpace(rVCB, blockSize, numberOfBlocks);
+    sBlock = initializeFreeSpace(rVCB, blockSize, numberOfBlocks);
+    rVCB->next = sBlock;
     if (rVCB->next == NULL)
         return (NULL);
-    initializeDirectory();
+    rVCB->startDirectory = initializeDirectories(&sBlock);
+    if (rVCB->startDirectory == NULL)
+        return (NULL);
     // Write the vcb to block 0
     nbBlocksWrote = LBAwrite(rVCB, 1, 0);
     if (nbBlocksWrote == -1) {
