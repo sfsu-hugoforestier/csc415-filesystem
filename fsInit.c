@@ -37,17 +37,14 @@ void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
 st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
     int nbBlocksWrote = 0;
     st_vcb *rVCB = malloc(blockSize);
-    struct st_block *sBlock = NULL;
 
-    // Maje sure that our vcb structure is correctly filled
+    // Make sure that our vcb structure is correctly filled
     initializeVCB(rVCB, numberOfBlocks, blockSize);
-    // We initialize our first block, and link the vcb structure to block 0
-    sBlock = initializeFreeSpace(rVCB, blockSize, numberOfBlocks);
-    rVCB->next = sBlock;
-    if (rVCB->next == NULL)
+    rVCB->indexFreeSpace = initializeFreeSpace(blockSize, numberOfBlocks);
+    if (rVCB->indexFreeSpace == -1)
         return (NULL);
-    rVCB->startDirectory = initializeDirectories(&sBlock);
-    if (rVCB->startDirectory == NULL)
+    rVCB->startDirectory =  initializeDirectories(rVCB, blockSize, numberOfBlocks);
+    if (rVCB->startDirectory == -1)
         return (NULL);
     // Write the vcb to block 0
     nbBlocksWrote = LBAwrite(rVCB, 1, 0);
@@ -76,8 +73,10 @@ st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
     // Here we find out if we need to create a new volume or not
     if (sVCB->signature == PART_SIGNATURE) {
         printf("Not formatting\n");
+        readFreeSpace(sVCB, blockSize, numberOfBlocks);
         return (sVCB);
     } else {
+        free(sVCB);
         printf("Formatting...\n");
         return (formatVolume(blockSize, numberOfBlocks));
     }

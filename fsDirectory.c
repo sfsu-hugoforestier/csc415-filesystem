@@ -2,86 +2,60 @@
 #include <stdio.h>
 #include <string.h>
 #include "fsLow.h"
+#include "vcb.h"
 
-int initializeDirectory(struct st_directory **head, char *name, int isDirectory, struct st_block **hBlocks, int parentId) {
-    struct st_directory *nDirectory = malloc(sizeof(struct st_directory));
+struct st_directory *initDefaultDir(struct st_directory *sDir, int iBlock, int sizeMallocDir) {
     time_t t = time(NULL);
-    int nbBlocksWrote = 0;
-    int locationBlock = addNewBlockToEnd(hBlocks, 1);
-    struct st_directory *lDirectory = *head;
 
-    if (nDirectory == NULL || locationBlock == -1) {
-        printf("Error while mallocing new directory\n");
-        return (-1);
-    }
+    sDir[0].isFree = FALSE;
+    sDir[0].startBlockNb = iBlock;
+    sDir[0].creationDate = time(&t);
+    sDir[0].lastModDate = time(&t);
+    sDir[0].id = 1;
+    sDir[0].parentId = 0;
+    strcpy(sDir[0].name, ".");
+    sDir[0].isDirectory = TRUE;
+    sDir[0].sizeDirectory = sizeMallocDir;
 
-    // Loop until the end of our linked list, in order to add a new node at the end
-    while (lDirectory->next != NULL) {
-        lDirectory = lDirectory->next;
-    }
-    // Fill the struct with the values given as arguments
-    strncpy(nDirectory->name, name, 64);
-    nDirectory->location = locationBlock;
-    nDirectory->id = lDirectory->id + 1;
-    nDirectory->parentId = parentId;
-    nDirectory->lastAccess = time(&t);
-    nDirectory->lastModDate = time(&t);
-    nDirectory->creationDate = time(&t);
-    nDirectory->isDirectory = isDirectory;
-    lDirectory->next = nDirectory;
-
-    // Rewrite the last directory, to change next directory value
-    nbBlocksWrote = LBAwrite(lDirectory, 1, lDirectory->location);
-    if (nbBlocksWrote != 1) {
-        printf("Error while writing\n");
-        return (-1);
-    }
-    // Write to the volume the newly created directory.
-    nbBlocksWrote = LBAwrite(nDirectory, 1, locationBlock);
-    if (nbBlocksWrote != 1) {
-        printf("Error while writing\n");
-        return (-1);
-    }
-    return (0);
+    sDir[1].isFree = FALSE;
+    sDir[1].startBlockNb = iBlock;
+    sDir[1].creationDate = time(&t);
+    sDir[1].lastModDate = time(&t);
+    sDir[1].id = 0;
+    sDir[1].parentId = -1;
+    strcpy(sDir[1].name, "..");
+    sDir[1].isDirectory = TRUE;
+    sDir[1].sizeDirectory = sizeMallocDir;
+    return (sDir);
 }
 
-int initializeFirstDirectory(struct st_directory *sDirectory, struct st_block **hBlocks) {
-    time_t t = time(NULL);
-    int nbBlocksWrote = 2;
-    // If i ask for a new block here, I'm going to skip a block because I already initialized a block with the function initializeFreeSpace.
-    // That's why in initializeFreeSpace I specified that the block wasn't free so that I don't have to call for a new block here.
-    int locationBlock = 2;
+int initializeDirectories(st_vcb *rVCB, int blockSize, int numberOfBlocks) {
+    struct st_directory *sDir;
+    unsigned int end = 0;
+    unsigned int iBlock = 0;
+    unsigned int nbDir = DIRECTORY_ENTRIES;
+    unsigned int sizeMallocDir = sizeof(struct st_directory) * DIRECTORY_ENTRIES;
+    unsigned int nbBlocks = (sizeMallocDir / blockSize) + 1;
+    unsigned int maxSize = nbBlocks * blockSize;
 
-    // Initialize the values for the first directory.
-    strcpy(sDirectory->name, "..");
-    sDirectory->location = locationBlock;
-    sDirectory->id = 1;
-    sDirectory->parentId = -1;
-    sDirectory->lastAccess = time(&t);
-    sDirectory->lastModDate = time(&t);
-    sDirectory->creationDate = time(&t);
-    sDirectory->next = NULL;
-    // Make sure that I write the datas to the volume
-    nbBlocksWrote = LBAwrite(sDirectory, 1, locationBlock);
-    if (nbBlocksWrote != 1)
+    while (sizeMallocDir < maxSize && end != 1) {
+        if (sizeMallocDir + sizeof(struct st_directory) < maxSize) {
+            sizeMallocDir+=(sizeof(struct st_directory));
+            nbDir+=1;
+        } else {
+            end = 1;
+        }
+    }
+    sDir = malloc(sizeMallocDir);
+    if (sDir == NULL) {
+        printf("Error while allocating the memory for sDir\n");
         return (-1);
-    return (0);
+    }
+    for (int i = 0; i != nbDir; i++)
+        sDir[i].isFree = TRUE;
+    iBlock = getFreeSpace(rVCB, nbBlocks, blockSize, numberOfBlocks);
+    sDir = initDefaultDir(sDir, iBlock, sizeMallocDir);
+    LBAwrite(sDir, nbBlocks, iBlock);
+    return (iBlock);
 }
 
-struct st_directory *initializeDirectories(struct st_block **hBlocks) {
-    struct st_directory *sDirectory = malloc(sizeof(struct st_directory));
-
-    if (sDirectory == NULL) {
-        printf("Error while mallocing directory\n");
-        return (NULL);
-    }
-    if (initializeFirstDirectory(sDirectory, hBlocks) != 0) {
-        printf("Error while initializing first directory\n");
-        return (NULL);
-    }
-    if (initializeDirectory(&sDirectory, ".", 1, hBlocks, 1) != 0) {
-        printf("Error while initializing second directory\n");
-        return (NULL);
-    }
-    return (sDirectory);
-}

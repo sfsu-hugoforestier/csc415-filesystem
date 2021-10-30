@@ -20,8 +20,8 @@ typedef struct vcb {
     uint64_t blockSize;
     uint64_t numberOfBlocks;
     uint64_t signature;
-    struct st_block *next;
-    struct st_directory *startDirectory;
+    int indexFreeSpace;
+    int startDirectory;
 } st_vcb;
 
 #endif

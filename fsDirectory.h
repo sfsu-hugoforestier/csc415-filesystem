@@ -13,22 +13,26 @@
 #ifndef FSDIRECTORY_H_
 #define FSDIRECTORY_H_
 
+#define DIRECTORY_ENTRIES (50)
+#define TRUE (1)
+#define FALSE (0)
+
 #include <time.h>
 #include <stdlib.h>
 #include "fsFree.h"
 
 struct st_directory {
-    char name[64];
-    int location;
+    int isFree;
+    int startBlockNb;
     int id;
     int parentId;
+    int isDirectory;
+    int sizeDirectory;
     time_t creationDate;
     time_t lastModDate;
-    time_t lastAccess;
-    int isDirectory;
-    struct st_directory *next;
+    char name[64];
 };
 
-struct st_directory *initializeDirectories(struct st_block **hBlocks);
+int initializeDirectories(st_vcb *rVCB, int blockSize, int numberOfBlocks);
 
 #endif
