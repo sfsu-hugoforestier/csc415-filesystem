@@ -13,18 +13,16 @@
 #ifndef FSFREE_H_
 #define FSFREE_H_
 
+#define TRUE (1)
+#define FALSE (0)
+
 #include "vcb.h"
 #include <stddef.h>
 
-struct st_block {
-    int location;
-    int isFree;
-    struct st_block *next;
-};
-
-struct st_block *initializeFreeSpace(st_vcb *sVCB, int blockSize, int numberOfBlocks);
-int addNewBlockToEnd(struct st_block **head, int isFree);
-int freeBlock(struct st_block **head, int location);
-int getLocationLastBlock(struct st_block **head);
+int initializeFreeSpace(int blockSize, int numberOfBlocks);
+int getFreeSpace(st_vcb *sVCB, int nbBlocks, int blockSize, int numberOfBlocks);
+int readFreeSpace(st_vcb *sVCB, int blockSize, int numberOfBlocks);
+int freeSpace(int startBlock, int nbBlock);
+int readFreeMap(st_vcb *sVCB, int blockSize, int numberOfBlocks);
 
 #endif
