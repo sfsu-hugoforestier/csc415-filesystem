@@ -68,15 +68,15 @@ int cmd_history (int argcnt, char *argvec[]);
 int cmd_help (int argcnt, char *argvec[]);
 
 dispatch_t dispatchTable[] = {
-	{"ls", cmd_ls, "Lists the file in a directory"},
+	{"ls", cmd_ls, "Lists the file in a directory"}, // TO DO M2
 	{"cp", cmd_cp, "Copies a file - source [dest]"},
 	{"mv", cmd_mv, "Moves a file - source dest"},
-	{"md", cmd_md, "Make a new directory"},
+	{"md", cmd_md, "Make a new directory"}, // TO DO M2
 	{"rm", cmd_rm, "Removes a file or directory"},
 	{"cp2l", cmd_cp2l, "Copies a file from the test file system to the linux file system"},
 	{"cp2fs", cmd_cp2fs, "Copies a file from the Linux file system to the test file system"},
-	{"cd", cmd_cd, "Changes directory"},
-	{"pwd", cmd_pwd, "Prints the working directory"},
+	{"cd", cmd_cd, "Changes directory"}, // TO DO M2
+	{"pwd", cmd_pwd, "Prints the working directory"}, // TO DO M2
 	{"history", cmd_history, "Prints out the history"},
 	{"help", cmd_help, "Prints out help"}
 };
