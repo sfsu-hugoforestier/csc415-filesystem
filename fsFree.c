@@ -24,7 +24,6 @@ int readFreeSpace(st_vcb *sVCB, int blockSize, int numberOfBlocks) {
 
     fMap = malloc(fsBlockCount * blockSize);
     nbWrote = LBAread(fMap, fsBlockCount, sVCB->indexFreeSpace);
-    printf("fsBlockCount: %i\n", fsBlockCount);
     if (nbWrote != fsBlockCount) {
         printf("Error while reading the free map\n");
         return (-1);
@@ -37,6 +36,7 @@ int checkIfFree(int h) {
 }
 
 int getFreeSpace(st_vcb *sVCB, int nbBlocks, int blockSize, int numberOfBlocks) {
+    int fsBlockCount = (((numberOfBlocks + 7) / 8) + (blockSize - 1)) / blockSize;
     int nbWrote = 0;
     int i = 0;
     char orMap[8];
@@ -64,8 +64,8 @@ int getFreeSpace(st_vcb *sVCB, int nbBlocks, int blockSize, int numberOfBlocks) 
         fMap[i / 8] |= orMap[i % 8];
     }
     sVCB->indexFreeSpace += nbBlocks;
-    nbWrote = LBAwrite(fMap, 5, 1);
-    if (nbWrote != 5) {
+    nbWrote = LBAwrite(fMap, fsBlockCount, 1);
+    if (nbWrote != fsBlockCount) {
         printf("Error while writing the fMap to the volume\n");
         return (-1);
     }
@@ -106,6 +106,7 @@ int initializeFreeSpace(int blockSize, int numberOfBlocks) {
     fMap = malloc(fsBlockCount * blockSize);
     for (; i != fsBlockCount; i++) {
       fMap[i / 8] |= orMap[i % 8];
+
     }
     nbWrote = LBAwrite(fMap, fsBlockCount, 1);
     if (nbWrote != fsBlockCount) {
