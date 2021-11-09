@@ -4,9 +4,10 @@
 #include "fsLow.h"
 #include "vcb.h"
 
-struct st_directory *initDefaultDir(struct st_directory *sDir, int iBlock, int sizeMallocDir) {
+struct st_directory *initDefaultDir(struct st_directory *sDir, int iBlock, int sizeMallocDir, int nbDir) {
     time_t t = time(NULL);
 
+    sDir[0].nbDir = nbDir;
     sDir[0].isFree = FALSE;
     sDir[0].startBlockNb = iBlock;
     sDir[0].creationDate = time(&t);
@@ -17,6 +18,7 @@ struct st_directory *initDefaultDir(struct st_directory *sDir, int iBlock, int s
     sDir[0].isDirectory = TRUE;
     sDir[0].sizeDirectory = sizeMallocDir;
 
+    sDir[1].nbDir = nbDir;
     sDir[1].isFree = FALSE;
     sDir[1].startBlockNb = iBlock;
     sDir[1].creationDate = time(&t);
@@ -54,7 +56,7 @@ int initializeDirectories(st_vcb *rVCB, int blockSize, int numberOfBlocks) {
     for (int i = 0; i != nbDir; i++)
         sDir[i].isFree = TRUE;
     iBlock = getFreeSpace(rVCB, nbBlocks, blockSize, numberOfBlocks);
-    sDir = initDefaultDir(sDir, iBlock, sizeMallocDir);
+    sDir = initDefaultDir(sDir, iBlock, sizeMallocDir, nbDir);
     LBAwrite(sDir, nbBlocks, iBlock);
     return (iBlock);
 }
