@@ -22,7 +22,6 @@ int readFreeSpace(st_vcb *sVCB, int blockSize, int numberOfBlocks) {
     int fsBlockCount = (((numberOfBlocks + 7) / 8) + (blockSize - 1)) / blockSize;
     int nbWrote = 0;
 
-
     fMap = malloc(fsBlockCount * blockSize);
     nbWrote = LBAread(fMap, fsBlockCount, sVCB->indexFreeSpace);
     printf("fsBlockCount: %i\n", fsBlockCount);
@@ -33,25 +32,36 @@ int readFreeSpace(st_vcb *sVCB, int blockSize, int numberOfBlocks) {
     return (0);
 }
 
+int checkIfFree(int h) {
+    return (fMap[h] & (1 << h));
+}
+
 int getFreeSpace(st_vcb *sVCB, int nbBlocks, int blockSize, int numberOfBlocks) {
     int nbWrote = 0;
     int i = 0;
+    char orMap[8];
     int foundSpace = FALSE;
     int end = FALSE;
 
+    orMap[0] = 0x80;
+    orMap[1] = 0x40;
+    orMap[2] = 0x20;
+    orMap[3] = 0x10;
+    orMap[4] = 0x08;
+    orMap[5] = 0x04;
+    orMap[6] = 0x02;
+    orMap[7] = 0x01;
     for (; i != sVCB->indexFreeSpace && foundSpace != TRUE; i++) {
         for (int h = i; h != i + nbBlocks && end != TRUE; h++) {
-            if (fMap[h] != 0) {
+            if (checkIfFree(h) == FALSE)
                 end = TRUE;
-            }
         }
         if (end != TRUE) {
             foundSpace = TRUE;
         }
     }
-
     for (int y = i; y != (i + nbBlocks); y++) {
-        fMap[y] = 1;
+        fMap[i / 8] |= orMap[i % 8];
     }
     sVCB->indexFreeSpace += nbBlocks;
     nbWrote = LBAwrite(fMap, 5, 1);
@@ -63,8 +73,18 @@ int getFreeSpace(st_vcb *sVCB, int nbBlocks, int blockSize, int numberOfBlocks) 
 }
 
 int freeSpace(int startBlock, int nbBlock) {
+    char andMap[8];
+    andMap[0] = 0x7F;
+    andMap[1] = 0xBF;
+    andMap[2] = 0xDF;
+    andMap[3] = 0xEF;
+    andMap[4] = 0xF7;
+    andMap[5] = 0xFB;
+    andMap[6] = 0xFD;
+    andMap[7] = 0xFE;
+
     for (int i = startBlock; i != startBlock + nbBlock; i++) {
-        fMap[i] = 0;
+        fMap[i / 8] &= andMap[i % 8];
     }
     return (0);
 }
@@ -73,13 +93,22 @@ int initializeFreeSpace(int blockSize, int numberOfBlocks) {
     int fsBlockCount = (((numberOfBlocks + 7) / 8) + (blockSize - 1)) / blockSize;
     int i = 0;
     int nbWrote = 0;
+    char orMap[8];
 
+    orMap[0] = 0x80;
+    orMap[1] = 0x40;
+    orMap[2] = 0x20;
+    orMap[3] = 0x10;
+    orMap[4] = 0x08;
+    orMap[5] = 0x04;
+    orMap[6] = 0x02;
+    orMap[7] = 0x01;
     fMap = malloc(fsBlockCount * blockSize);
-    for (; i != 5; i++) {
-      fMap[i] = 1;
+    for (; i != fsBlockCount; i++) {
+      fMap[i / 8] |= orMap[i % 8];
     }
-    nbWrote = LBAwrite(fMap, 5, 1);
-    if (nbWrote != 5) {
+    nbWrote = LBAwrite(fMap, fsBlockCount, 1);
+    if (nbWrote != fsBlockCount) {
         printf("Error while writing the fMap to the volume\n");
         return (-1);
     }
