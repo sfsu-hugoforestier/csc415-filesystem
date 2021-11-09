@@ -67,6 +67,7 @@ int initializeDirectories(st_vcb*rVCB, int blockSize, int numberOfBlocks) {
     LBAwrite(sDir, nbBlocks, iBlock);
     return (iBlock);
 }
+//TODO: Remove directories that are in nested directories, not within the CWD dir
 
 int generateID(){
     return 0;
@@ -148,6 +149,8 @@ char *fs_getcwd(char *buf,size_t length){
     return buf;
 }
 
+//TODO: Remove directories that are in nested directories, not within the CWD dir
+
 int fs_mkdir(const char *pathname, mode_t mode){
     struct st_directory *nDir;
     char pathNameHolder[64];
@@ -195,5 +198,12 @@ int fs_mkdir(const char *pathname, mode_t mode){
 
 
 int fs_rmdir(const char *pathname){
+    //find Dir
+
+    //cant find - return error
+
+    //if it has children - return error not empty
+
+    //else kill Dir
     
 }
