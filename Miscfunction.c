@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "vcb.h"
+#include "fsParsePath.h"
 
 char *path  = NULL;
 
@@ -47,20 +49,46 @@ void remove_extra_slash(char * path)
     free(temp);
 }
 
+// rVCB->startDirectory
+st_vcb *getref() {
+    return rVCB;
+}
+
+//int freeBlockSize;
+//uint64_t blockSize;
+//uint64_t numberOfBlocks;
+//uint64_t signature;
+//int indexFreeSpace;
+//int startDirectory;
+
+void printvcb(st_vcb *tmp) {
+    printf("freeblockSize[%d]\n", tmp->freeBlockSize);
+    printf("blockSize[%llu]\n", tmp->blockSize);
+    printf("numberOfBlocks[%llu]\n", tmp->numberOfBlocks);
+    printf("signature[%llu]\n", tmp->signature);
+    printf("indexFreeSpace[%d]\n", tmp->indexFreeSpace);
+    printf("startDirectory[%d]\n", tmp->startDirectory);
+}
 int fs_setcwd(char *buf) {
-    if (path == NULL) {
-        path = malloc(sizeof(char) * (strlen(buf) + 1));
-        strcpy(path, buf);
-    } else {
-        char *temp = malloc(sizeof(char) * (strlen(path) + strlen(buf) + 2));
-        strcpy(temp, path);
-        strcat(temp, "/");
-        remove_extra_slash(temp);
-        strcat(temp, buf);
-        free(path);
-        path = temp;
-    }
-    return 0;
+    printf("test");
+    st_vcb *tmp = getref();
+    printvcb(tmp);
+
+
+
+//    if (path == NULL) {
+//        path = malloc(sizeof(char) * (strlen(buf) + 1));
+//        strcpy(path, buf);
+//    } else {
+//        char *temp = malloc(sizeof(char) * (strlen(path) + strlen(buf) + 2));
+//        strcpy(temp, path);
+//        strcat(temp, "/");
+//        remove_extra_slash(temp);
+//        strcat(temp, buf);
+//        free(path);
+//        path = temp;
+//    }
+//    return 0;
 }
 
 char *fs_getcwd(char *buf, size_t size) {
@@ -69,11 +97,10 @@ char *fs_getcwd(char *buf, size_t size) {
     }
     
     strncpy(buf, path, size);
-    return buf;
+    return path;
 }
 
-int fs_isDir(char * path)
-{
+int fs_isDir(char * path) {
     int i;
     for(i = 0; i < strlen(path); i++) {
         if(path[i] == '/') {
@@ -84,8 +111,7 @@ int fs_isDir(char * path)
 }
 
 
-int fs_isFile(char * path)
-{
+int fs_isFile(char *path) {
     if(fs_isDir(path) == 1) {
         return 0;
     } else {
@@ -103,14 +129,14 @@ int main() {
     // printf("%s\n", path);
     fs_setcwd("/");
     // printf("%s\n", path);
-    fs_setcwd("/home");
-    printf("%s\n", path);
-    fs_setcwd("france");
-    fs_setcwd("test");
-    printf("%s\n", path);
-
-
-    char *tmp = fs_getcwd(malloc(sizeof(char) * 100), 100);
-    printf("%s\n", tmp);
+//    fs_setcwd("/home");
+//    printf("%s\n", path);
+//    fs_setcwd("france");
+//    fs_setcwd("test");
+//    printf("%s\n", path);
+//
+//
+//    char *tmp = fs_getcwd(malloc(sizeof(char) * 100), 100);
+//    printf("%s\n", tmp);
     return 0;
 }

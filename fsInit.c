@@ -29,6 +29,7 @@
 #include "fsParsePath.h"
 
 #define SIGNATURE_VOLUME (0x2B779E6DCE5EA7F7)
+st_vcb *sVCB;
 
 void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
     sVCB->blockSize = blockSize;
