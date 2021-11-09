@@ -26,12 +26,13 @@
 #include "vcb.h"
 #include "fsFree.h"
 #include "fsDirectory.h"
-
 #include "fsParsePath.h"
+
+#define SIGNATURE_VOLUME (0x2B779E6DCE5EA7F7)
 
 void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
     sVCB->blockSize = blockSize;
-    sVCB->signature = PART_SIGNATURE;
+    sVCB->signature = SIGNATURE_VOLUME;
     sVCB->freeBlockSize = numberOfBlocks;
     sVCB->numberOfBlocks = numberOfBlocks;
 }
@@ -73,7 +74,7 @@ st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
         return (NULL);
     }
     // Here we find out if we need to create a new volume or not
-    if (sVCB->signature == PART_SIGNATURE) {
+    if (sVCB->signature == SIGNATURE_VOLUME) {
         printf("Not formatting\n");
         readFreeSpace(sVCB, blockSize, numberOfBlocks);
         return (sVCB);
