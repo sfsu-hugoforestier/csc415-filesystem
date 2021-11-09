@@ -24,6 +24,6 @@ typedef struct vcb {
     int startDirectory;
 } st_vcb;
 
-st_vcb* returnVCBRef();
+st_vcb *returnVCBRef();
 
 #endif
