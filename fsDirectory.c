@@ -7,9 +7,7 @@
 #include "mfs.h"
 #include "fsParsePath.h"
 
-#define DIRMAX_LEN		4096
-
-int sDirIndex = 1;
+#define DIRMAX_LEN 4096
 
 struct st_directory *initDefaultDir(struct st_directory *sDir, int iBlock, int sizeMallocDir, int nbDir) {
     time_t t = time(NULL);
@@ -70,7 +68,7 @@ int initializeDirectories(st_vcb*rVCB, int blockSize, int numberOfBlocks) {
 //TODO: Remove directories that are in nested directories, not within the CWD dir
 
 int generateID(){
-    return 0;
+    return (0);
 }
 
 struct st_directory *initializeNewDir(struct st_directory *nDir, int iBlock, struct st_directory *cwdDir){
@@ -98,7 +96,7 @@ struct st_directory *initializeNewDir(struct st_directory *nDir, int iBlock, str
     nDir[1].isDirectory = TRUE;
     nDir[1].sizeDirectory = nDir[0].sizeDirectory;
 
-    return nDir;
+    return (nDir);
 }
 
 int createDir(struct st_directory *cwdDir, int index, const char *pathname){
@@ -119,7 +117,7 @@ int createDir(struct st_directory *cwdDir, int index, const char *pathname){
         nDir[i].isFree = TRUE;
 
     iBlock = getFreeSpace(VCBRef, nbBlocks, VCBRef->blockSize, VCBRef->numberOfBlocks);
-    
+
     nDir = initializeNewDir(nDir, iBlock, cwdDir);
 
     //cwd - add the dir entry with value of location
@@ -140,32 +138,30 @@ int createDir(struct st_directory *cwdDir, int index, const char *pathname){
     LBAwrite(nDir, nbBlocks, iBlock);
     LBAwrite(cwdDir, nbBlocks, cwdDir[0].startBlockNb);
 
-    return 0;
+    return (0);
 }
 
+//TO REMOVE
 char *fs_getcwd(char *buf,size_t length){
     strcpy(buf,"/");
 
-    return buf;
+    return (buf);
 }
 
 //TODO: Remove directories that are in nested directories, not within the CWD dir
 
 int fs_mkdir(const char *pathname, mode_t mode){
     struct st_directory *nDir;
-    char pathNameHolder[64];
     int result = 0;
 
-    strcpy(pathNameHolder, pathname);
-
-    char * dir_buf = malloc (DIRMAX_LEN +1);
+    char *dir_buf = malloc (DIRMAX_LEN +1);
     char *cwd = malloc(DIRMAX_LEN +1);
     if(cwd == NULL){
         printf("MALLOC ERROR\n");
-        return -1;
+        return (-1);
     }
     cwd = fs_getcwd(dir_buf,DIRMAX_LEN);
-    
+
     nDir = parsePath(returnVCBRef()->startDirectory, 512, cwd);
 
     for(int i = 0; i != nDir[0].nbDir; i++){
@@ -173,10 +169,10 @@ int fs_mkdir(const char *pathname, mode_t mode){
            printf("ERROR: FILE already created\n");
            free (cwd);
            cwd = NULL;
-           return -1;
+           return (-1);
        }
     }
-    
+
     //No child - create directory
     for(int i = 0; i != nDir[0].nbDir; i++){
         if(nDir[i].isFree == TRUE){
@@ -184,16 +180,16 @@ int fs_mkdir(const char *pathname, mode_t mode){
             if(result < 0){
                 free (cwd);
                 cwd = NULL;
-                return -1;
+                return (-1);
             }
             break;
-        }  
+        }
     }
     free (dir_buf);
-	dir_buf = NULL;
+	 dir_buf = NULL;
     free (cwd);
-	cwd = NULL;
-    return 0;
+	 cwd = NULL;
+    return (0);
 }
 
 
@@ -205,5 +201,5 @@ int fs_rmdir(const char *pathname){
     //if it has children - return error not empty
 
     //else kill Dir
-    
+    return (0);
 }
