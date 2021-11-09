@@ -29,6 +29,8 @@
 
 #include "fsParsePath.h"
 
+st_vcb *sVCB;
+
 void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
     sVCB->blockSize = blockSize;
     sVCB->signature = PART_SIGNATURE;
@@ -89,12 +91,17 @@ st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize) {
     printf ("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
     // Check if a volume already exists. If it doesn't we will create a new one
-    st_vcb *sVCB = checkIfVolumeExists(numberOfBlocks, blockSize);
+    sVCB = checkIfVolumeExists(numberOfBlocks, blockSize);
 
     if (sVCB == NULL)
         return (-1);
     return (0);
 }
+
+st_vcb* returnVCBRef(){
+    return sVCB;
+}
+
 
 void exitFileSystem () {
     printf ("System exiting\n");
