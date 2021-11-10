@@ -22,6 +22,7 @@
 #include "fsFree.h"
 
 struct st_directory {
+    int nbDir;
     int isFree;
     int startBlockNb;
     int id;

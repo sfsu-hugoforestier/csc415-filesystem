@@ -26,10 +26,15 @@
 #include "vcb.h"
 #include "fsFree.h"
 #include "fsDirectory.h"
+#include "fsParsePath.h"
+
+#define SIGNATURE_VOLUME (0x2B779E6DCE5EA7F7)
+
+st_vcb *sVCB;
 
 void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
     sVCB->blockSize = blockSize;
-    sVCB->signature = PART_SIGNATURE;
+    sVCB->signature = SIGNATURE_VOLUME;
     sVCB->freeBlockSize = numberOfBlocks;
     sVCB->numberOfBlocks = numberOfBlocks;
 }
@@ -43,7 +48,7 @@ st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
     rVCB->indexFreeSpace = initializeFreeSpace(blockSize, numberOfBlocks);
     if (rVCB->indexFreeSpace == -1)
         return (NULL);
-    rVCB->startDirectory =  initializeDirectories(rVCB, blockSize, numberOfBlocks);
+    rVCB->startDirectory = initializeDirectories(rVCB, blockSize, numberOfBlocks);
     if (rVCB->startDirectory == -1)
         return (NULL);
     // Write the vcb to block 0
@@ -71,13 +76,15 @@ st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
         return (NULL);
     }
     // Here we find out if we need to create a new volume or not
-    if (sVCB->signature == PART_SIGNATURE) {
+    if (sVCB->signature == SIGNATURE_VOLUME) {
         printf("Not formatting\n");
         readFreeSpace(sVCB, blockSize, numberOfBlocks);
         return (sVCB);
     } else {
         free(sVCB);
         printf("Formatting...\n");
+        printf("Test\n");
+        fflush(NULL);
         return (formatVolume(blockSize, numberOfBlocks));
     }
 }
@@ -85,14 +92,16 @@ st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize) {
     printf ("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
     // Check if a volume already exists. If it doesn't we will create a new one
-    st_vcb *sVCB = checkIfVolumeExists(numberOfBlocks, blockSize);
+    sVCB = checkIfVolumeExists(numberOfBlocks, blockSize);
 
-    if (sVCB == NULL) {
+    if (sVCB == NULL)
         return (-1);
-    }
     return (0);
 }
 
+st_vcb* returnVCBRef(){
+    return (sVCB);
+}
 
 void exitFileSystem () {
     printf ("System exiting\n");
