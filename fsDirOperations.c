@@ -13,6 +13,7 @@
 
 #include "fsDirOperations.h"
 #include "vcb.h"
+#include "fsParsePath.h"
 
 struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
     struct fs_diriteminfo *dirInfo = malloc(sizeof(struct fs_diriteminfo) * dirp->d_reclen);
@@ -42,5 +43,6 @@ fdDir *fs_openDir(const char *name) {
     fDir->directoryStartLocation = nDir->startBlockNb;
     fDir->dirEntryPosition = 0;
     fDir->d_reclen = nDir->nbDir;
+    printf("--------------Directory Found----------------\n");
     return (fDir);
 }
