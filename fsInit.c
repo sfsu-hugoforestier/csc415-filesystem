@@ -30,6 +30,8 @@
 
 #define SIGNATURE_VOLUME (0x2B779E6DCE5EA7F7)
 
+st_vcb *sVCB;
+
 void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
     sVCB->blockSize = blockSize;
     sVCB->signature = SIGNATURE_VOLUME;
@@ -90,11 +92,15 @@ st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize) {
     printf ("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
     // Check if a volume already exists. If it doesn't we will create a new one
-    st_vcb *sVCB = checkIfVolumeExists(numberOfBlocks, blockSize);
+    sVCB = checkIfVolumeExists(numberOfBlocks, blockSize);
 
     if (sVCB == NULL)
         return (-1);
     return (0);
+}
+
+st_vcb* returnVCBRef(){
+    return (sVCB);
 }
 
 void exitFileSystem () {
