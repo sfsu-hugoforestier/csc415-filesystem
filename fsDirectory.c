@@ -143,8 +143,7 @@ int fs_mkdir(const char *pathname, mode_t mode) {
     for(int i = 0; i != nDir[0].nbDir; i++) {
        if(strcmp(nDir[i].name, pathname) == 0) {
            printf("ERROR: FILE already created\n");
-           free(cwd);
-           cwd = NULL;
+           
            return (-1);
        }
     }
@@ -161,19 +160,87 @@ int fs_mkdir(const char *pathname, mode_t mode) {
             break;
         }
     }
-    free(dir_buf);
-	 dir_buf = NULL;
+    
     return (0);
 }
 
-
-int fs_rmdir(const char *pathname) {
+int fs_rmdir(const char *pathname){
     //find Dir
+    printf("RM_DIR\n");
+    
+    struct st_directory *nDir;
+    struct st_directory *nCwd;
+    char pathNameHolder[64];
+    int found = 0; 
+    st_vcb *VCBRef = returnVCBRef();
+
+    strcpy(pathNameHolder, pathname);
+    printf("BEFORE PARSE\n");
+    nDir = parsePath(VCBRef->startDirectory, VCBRef->blockSize, pathNameHolder);
 
     //cant find - return error
+    if(nDir == NULL){
+        return -1;
+    }
 
     //if it has children - return error not empty
+    if(nDir[0].nbDir > 1){
+        printf("ERROR: %s has children files\nCannot delete\n",nDir[0].name);
+        return -1;
+    }
 
     //else kill Dir
-    return (0);
+    //get cwd
+    char * dir_buf = malloc (DIRMAX_LEN +1);
+    char *cwd = malloc(DIRMAX_LEN +1);
+    cwd = fs_getcwd(dir_buf,DIRMAX_LEN);
+    nCwd = parsePath(VCBRef->startDirectory, VCBRef->blockSize, cwd);
+
+    //search cwd for dir to delete
+    for(int i = 0; i != nCwd[0].nbDir; i++){
+       if(strcmp(nCwd[i].name, pathname) == 0){
+          nCwd[i].isFree = TRUE;
+          found = 1;
+       }
+    }
+    if(found == 0){
+        printf("ERROR: Directory %s not Found within Directory %s\n",pathname,nCwd[0].name);
+        return -1;
+    }
+
+    unsigned int nbBlocks = (nDir[0].sizeDirectory/ VCBRef->blockSize) + 1;
+    freeSpace(nDir->startBlockNb,nbBlocks);
+
+    free (dir_buf);
+	dir_buf = NULL;
+    free (cwd);
+	cwd = NULL;
+    return 0;
+}
+
+int fs_isDir(char * path)
+{
+    int i;
+    for(i = 0; i < strlen(path); i++) {
+        if(path[i] == '/') {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+int fs_isFile(char * path)
+{
+    if(fs_isDir(path) == 1) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+
+int fs_delete(char* filename) {
+    // REMOVE THE FILE
+    return 0;
 }

@@ -40,7 +40,7 @@
 #define CMDCP_ON	0
 #define CMDMV_ON	0
 #define CMDMD_ON	1
-#define CMDRM_ON	0
+#define CMDRM_ON	1
 #define CMDCP2L_ON	0
 #define CMDCP2FS_ON	0
 #define CMDCD_ON	0
@@ -319,10 +319,12 @@ int cmd_rm (int argcnt, char *argvec[])
 	//must determine if file or directory
 	if (fs_isDir (path))
 		{
+		printf("isDir\n");
 		return (fs_rmdir (path));
 		}
 	if (fs_isFile (path))
 		{
+		printf("isFile\n");
 		return (fs_delete(path));
 		}
 

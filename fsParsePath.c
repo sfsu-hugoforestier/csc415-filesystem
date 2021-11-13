@@ -27,7 +27,9 @@ struct st_directory *getDir(int startDirectory, int blockSize, struct st_directo
             end = 1;
         }
     }
+
     rootDir = malloc(sizeMallocDir);
+    
     uint64_t rvRead = LBAread(rootDir, nbBlocks, startDirectory);
     return (rootDir);
 }
@@ -54,6 +56,7 @@ struct st_directory *parsePath(int startDirectory, int blockSize, char *path) {
     unsigned int nbLooped = 0;
     unsigned int nbDelim = getNbChar(path, '/');
 
+  
     while ((token = strtok_r(pToken, "/", &pToken)) && token != NULL) {
         for (int i = 0; i != nDir[0].nbDir && end != 1; i++) {
             if (strcmp(nDir[i].name, token) == 0) {
