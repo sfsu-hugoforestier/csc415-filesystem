@@ -13,6 +13,7 @@
 
 #include "fsParsePath.h"
 #include "fsDirectory.h"
+#include "fsUtils.h"
 
 struct st_directory *getDir(int startDirectory, int blockSize, struct st_directory *rootDir) {
     unsigned int sizeMallocDir = sizeof(struct st_directory) * DIRECTORY_ENTRIES;
@@ -29,7 +30,7 @@ struct st_directory *getDir(int startDirectory, int blockSize, struct st_directo
     }
 
     rootDir = malloc(sizeMallocDir);
-    
+
     uint64_t rvRead = LBAread(rootDir, nbBlocks, startDirectory);
     return (rootDir);
 }
@@ -49,14 +50,14 @@ int getNbChar(char *string, char delim) {
 //parsePath(sVCB->startDirectory, blockSize, string);
 
 struct st_directory *parsePath(int startDirectory, int blockSize, char *path) {
-    struct st_directory *nDir = getDir(startDirectory, blockSize, nDir);
+    struct st_directory *nDir = NULL;
     char *token = NULL;
     char *pToken = path;
     unsigned int end = 0;
     unsigned int nbLooped = 0;
     unsigned int nbDelim = getNbChar(path, '/');
+    nDir = getDir(startDirectory, blockSize, nDir);
 
-  
     while ((token = strtok_r(pToken, "/", &pToken)) && token != NULL) {
         for (int i = 0; i != nDir[0].nbDir && end != 1; i++) {
             if (strcmp(nDir[i].name, token) == 0) {

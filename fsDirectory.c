@@ -6,6 +6,7 @@
 
 #include "mfs.h"
 #include "fsParsePath.h"
+#include "fsUtils.h"
 
 #define DIRMAX_LEN 4096
 
@@ -54,34 +55,56 @@ int initializeDirectories(st_vcb *rVCB, int blockSize, int numberOfBlocks) {
         printf("Error while allocating the memory for sDir\n");
         return (-1);
     }
-    for (int i = 0; i != nbDir; i++)
+
+    for (int i = 0; i != nbDir; i++) {
+        sDir[i].nbDir = -1;
         sDir[i].isFree = TRUE;
+        sDir[i].startBlockNb = -1;
+        sDir[i].creationDate = 0;
+        sDir[i].lastModDate = 0;
+        strcpy(sDir[i].name, "");
+        sDir[i].isDirectory = -1;
+        sDir[i].sizeDirectory = -1;
+    }
     iBlock = getFreeSpace(rVCB, nbBlocks, blockSize, numberOfBlocks);
     sDir = initDefaultDir(sDir, iBlock, sizeMallocDir, nbDir);
     LBAwrite(sDir, nbBlocks, iBlock);
+
+    free(sDir);
     return (iBlock);
 }
 
 struct st_directory *initializeNewDir(struct st_directory *nDir, int iBlock, struct st_directory *cwdDir) {
     time_t t = time(NULL);
 
-    nDir[0].nbDir = nDir[0].nbDir;
+    for (int i = 0; i != cwdDir[0].nbDir; i++) {
+        nDir[i].nbDir = cwdDir[0].nbDir;
+        nDir[i].isFree = TRUE;
+        nDir[i].startBlockNb = -1;
+        nDir[i].creationDate = time(&t);
+        nDir[i].lastModDate = time(&t);
+        strcpy(nDir[i].name, "");
+        nDir[i].isDirectory = -1;
+        nDir[i].sizeDirectory = -1;
+    }
+
+    nDir[0].nbDir = cwdDir[0].nbDir;
     nDir[0].isFree = FALSE;
     nDir[0].startBlockNb = iBlock;
     nDir[0].creationDate = time(&t);
     nDir[0].lastModDate = time(&t);
     strcpy(nDir[0].name, ".");
     nDir[0].isDirectory = TRUE;
-    nDir[0].sizeDirectory = nDir[0].sizeDirectory;
+    nDir[0].sizeDirectory = cwdDir[0].sizeDirectory;
 
-    nDir[1].nbDir = nDir[0].nbDir;
+    nDir[1].nbDir = cwdDir[0].nbDir;
     nDir[1].isFree = FALSE;
     nDir[1].startBlockNb = cwdDir[0].startBlockNb;
     nDir[1].creationDate = time(&t);
     nDir[1].lastModDate = time(&t);
     strcpy(nDir[1].name, "..");
     nDir[1].isDirectory = TRUE;
-    nDir[1].sizeDirectory = nDir[0].sizeDirectory;
+    nDir[1].sizeDirectory = cwdDir[0].sizeDirectory;
 
     return (nDir);
 }
@@ -117,61 +140,70 @@ int createDir(struct st_directory *cwdDir, int index, const char *pathname) {
     LBAwrite(nDir, nbBlocks, iBlock);
     LBAwrite(cwdDir, nbBlocks, cwdDir[0].startBlockNb);
 
+    free(nDir);
+    nDir = NULL;
     return (0);
 }
 
 //TO REMOVE
-char *fs_getcwd(char *buf,size_t length) {
-    strcpy(buf,"/");
+char *fs_getcwd(char *buf, size_t length) {
+    strcpy(buf, "/\0");
     return (buf);
 }
 
 //TODO: Remove directories that are in nested directories, not within the CWD dir
 
 int fs_mkdir(const char *pathname, mode_t mode) {
-    struct st_directory *nDir;
+    struct st_directory *cwDir = NULL;
     int result = 0;
-    char *dir_buf = malloc(DIRMAX_LEN +1);
-    char *cwd = malloc(DIRMAX_LEN +1);
+    char *dir_buf = malloc(DIRMAX_LEN + 1);
+    char *sCWD = malloc(DIRMAX_LEN + 1);
 
-    if(cwd == NULL) {
+    if(sCWD == NULL) {
         printf("MALLOC ERROR\n");
         return (-1);
     }
-    cwd = fs_getcwd(dir_buf,DIRMAX_LEN);
-    nDir = parsePath(returnVCBRef()->startDirectory, 512, cwd);
-    for(int i = 0; i != nDir[0].nbDir; i++) {
-       if(strcmp(nDir[i].name, pathname) == 0) {
-           printf("ERROR: FILE already created\n");
-           
-           return (-1);
-       }
+    sCWD = fs_getcwd(dir_buf, DIRMAX_LEN);
+    cwDir = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, sCWD);
+    for(int i = 0; i != cwDir[0].nbDir; i++) {
+        if (strcmp(cwDir[i].name, pathname) == 0) {
+            printf("ERROR: FILE already created\n");
+            free(sCWD);
+            free(cwDir);
+            sCWD = NULL;
+            cwDir = NULL;
+            return (-1);
+        }
     }
-
     //No child - create directory
-    for(int i = 0; i != nDir[0].nbDir; i++) {
-        if(nDir[i].isFree == TRUE) {
-            result = createDir(nDir, i, pathname);
+    for(int i = 0; i != cwDir[0].nbDir; i++) {
+        if(cwDir[i].isFree == TRUE) {
+            result = createDir(cwDir, i, pathname);
             if(result < 0) {
-                free(cwd);
-                cwd = NULL;
+                free(sCWD);
+                free(cwDir);
+                sCWD = NULL;
+                cwDir = NULL;
                 return (-1);
             }
             break;
         }
     }
-    
+    free(sCWD);
+    free(cwDir);
+    sCWD = NULL;
+    cwDir = NULL;
     return (0);
 }
 
 int fs_rmdir(const char *pathname){
     //find Dir
     printf("RM_DIR\n");
-    
+
     struct st_directory *nDir;
     struct st_directory *nCwd;
     char pathNameHolder[64];
-    int found = 0; 
+    int found = 0;
     st_vcb *VCBRef = returnVCBRef();
 
     strcpy(pathNameHolder, pathname);
@@ -212,9 +244,9 @@ int fs_rmdir(const char *pathname){
     freeSpace(nDir->startBlockNb,nbBlocks);
 
     free (dir_buf);
-	dir_buf = NULL;
+    dir_buf = NULL;
     free (cwd);
-	cwd = NULL;
+    cwd = NULL;
     return 0;
 }
 

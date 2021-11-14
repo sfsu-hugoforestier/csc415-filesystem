@@ -42,6 +42,11 @@ st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
     int nbBlocksWrote = 0;
     st_vcb *rVCB = malloc(blockSize);
 
+    strncpy((char*)rVCB, "", blockSize);
+    if (rVCB == NULL) {
+        printf("Error while mallocing rVCB\n");
+        return (NULL);
+    }
     // Make sure that our vcb structure is correctly filled
     initializeVCB(rVCB, numberOfBlocks, blockSize);
     rVCB->indexFreeSpace = initializeFreeSpace(blockSize, numberOfBlocks);
@@ -82,8 +87,6 @@ st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
     } else {
         free(sVCB);
         printf("Formatting...\n");
-        printf("Test\n");
-        fflush(NULL);
         return (formatVolume(blockSize, numberOfBlocks));
     }
 }
