@@ -132,7 +132,7 @@ int createDir(struct st_directory *cwdDir, int index, const char *pathname) {
     return (0);
 }
 
-//TO REMOVE
+//TODO: TO REMOVE AFTER MERGE
 char *fs_getcwd(char *buf, size_t length) {
     strcpy(buf, "/\0");
     return (buf);
@@ -150,8 +150,11 @@ int fs_mkdir(const char *pathname, mode_t mode) {
         printf("MALLOC ERROR\n");
         return (-1);
     }
+
     sCWD = fs_getcwd(dir_buf, DIRMAX_LEN);
     cwDir = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, sCWD);
+
+    //Check if dir is already created
     for(int i = 0; i != cwDir[0].nbDir; i++) {
         if (strcmp(cwDir[i].name, pathname) == 0) {
             printf("ERROR: FILE already created\n");
@@ -162,6 +165,7 @@ int fs_mkdir(const char *pathname, mode_t mode) {
             return (-1);
         }
     }
+
     //No child - create directory
     for(int i = 0; i != cwDir[0].nbDir; i++) {
         if(cwDir[i].isFree == TRUE) {
@@ -185,9 +189,9 @@ int fs_mkdir(const char *pathname, mode_t mode) {
 }
 
 int fs_rmdir(const char *pathname){
-    //find Dir
-    printf("RM_DIR\n");
+    //printf("RM_DIR\n");
 
+    //find Dir
     struct st_directory *nDir;
     struct st_directory *nCwd;
     char pathNameHolder[64];
@@ -195,7 +199,7 @@ int fs_rmdir(const char *pathname){
     st_vcb *VCBRef = returnVCBRef();
 
     strcpy(pathNameHolder, pathname);
-    printf("BEFORE PARSE\n");
+    //printf("BEFORE PARSE\n");
     nDir = parsePath(VCBRef->startDirectory, VCBRef->blockSize, pathNameHolder);
 
     //cant find - return error
@@ -228,6 +232,7 @@ int fs_rmdir(const char *pathname){
         return -1;
     }
 
+    //Reset freespace map bit
     unsigned int nbBlocks = (nDir[0].sizeDirectory/ VCBRef->blockSize) + 1;
     freeSpace(nDir->startBlockNb,nbBlocks);
 
@@ -238,6 +243,7 @@ int fs_rmdir(const char *pathname){
     return 0;
 }
 
+//TODO: NEED TO DELETE FUNCTION BELOW AFTER MERGING 
 int fs_isDir(char * path)
 {
     int i;
