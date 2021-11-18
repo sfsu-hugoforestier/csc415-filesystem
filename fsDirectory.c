@@ -13,6 +13,9 @@
 struct st_directory *initDefaultDir(struct st_directory *sDir, int iBlock, int sizeMallocDir, int nbDir) {
     time_t t = time(NULL);
 
+    for (int i = 0; i != nbDir; i++) {
+        sDir[i].isFree = TRUE;
+    }
     sDir[0].nbDir = nbDir;
     sDir[0].isFree = FALSE;
     sDir[0].startBlockNb = iBlock;
@@ -50,22 +53,13 @@ int initializeDirectories(st_vcb *rVCB, int blockSize, int numberOfBlocks) {
             end = 1;
         }
     }
-    sDir = malloc(sizeMallocDir);
+    printf("In initializeDirectories sizeMallocDir: %i\n", sizeMallocDir);
+    sDir = calloc(nbDir, sizeof(struct st_directory));
     if (sDir == NULL) {
         printf("Error while allocating the memory for sDir\n");
         return (-1);
     }
 
-    for (int i = 0; i != nbDir; i++) {
-        sDir[i].nbDir = -1;
-        sDir[i].isFree = TRUE;
-        sDir[i].startBlockNb = -1;
-        sDir[i].creationDate = 0;
-        sDir[i].lastModDate = 0;
-        strcpy(sDir[i].name, "");
-        sDir[i].isDirectory = -1;
-        sDir[i].sizeDirectory = -1;
-    }
     iBlock = getFreeSpace(rVCB, nbBlocks, blockSize, numberOfBlocks);
     sDir = initDefaultDir(sDir, iBlock, sizeMallocDir, nbDir);
     LBAwrite(sDir, nbBlocks, iBlock);
@@ -78,14 +72,7 @@ struct st_directory *initializeNewDir(struct st_directory *nDir, int iBlock, str
     time_t t = time(NULL);
 
     for (int i = 0; i != cwdDir[0].nbDir; i++) {
-        nDir[i].nbDir = cwdDir[0].nbDir;
         nDir[i].isFree = TRUE;
-        nDir[i].startBlockNb = -1;
-        nDir[i].creationDate = time(&t);
-        nDir[i].lastModDate = time(&t);
-        strcpy(nDir[i].name, "");
-        nDir[i].isDirectory = -1;
-        nDir[i].sizeDirectory = -1;
     }
 
     nDir[0].nbDir = cwdDir[0].nbDir;
@@ -111,7 +98,7 @@ struct st_directory *initializeNewDir(struct st_directory *nDir, int iBlock, str
 
 int createDir(struct st_directory *cwdDir, int index, const char *pathname) {
     //create new dir
-    struct st_directory *nDir = malloc(sizeof(struct st_directory) * cwdDir[0].nbDir);
+    struct st_directory *nDir = calloc(cwdDir[0].nbDir, sizeof(struct st_directory));
     st_vcb *VCBRef = returnVCBRef();
     int iBlock = 0;
     unsigned int nbBlocks = (cwdDir[0].sizeDirectory / VCBRef->blockSize) + 1;
@@ -189,6 +176,7 @@ int fs_mkdir(const char *pathname, mode_t mode) {
             break;
         }
     }
+    printDirectory(cwDir);
     free(sCWD);
     free(cwDir);
     sCWD = NULL;

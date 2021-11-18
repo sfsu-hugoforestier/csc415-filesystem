@@ -20,18 +20,25 @@ struct st_directory *getDir(int startDirectory, int blockSize, struct st_directo
     unsigned int nbBlocks = (sizeMallocDir / blockSize) + 1;
     unsigned int maxSize = nbBlocks * blockSize;
     unsigned int end = 0;
+    int nbDir = DIRECTORY_ENTRIES;
 
     while (sizeMallocDir < maxSize && end != 1) {
         if (sizeMallocDir + sizeof(struct st_directory) < maxSize) {
             sizeMallocDir+=(sizeof(struct st_directory));
+            nbDir++;
         } else {
             end = 1;
         }
     }
-
-    rootDir = malloc(sizeMallocDir);
-
+    printf("In getdir sizemallocdir: %i\n", sizeMallocDir);
+    rootDir = calloc(nbDir, sizeMallocDir);
     uint64_t rvRead = LBAread(rootDir, nbBlocks, startDirectory);
+    if (rvRead != nbBlocks) {
+        printf("Error while reading\n");
+        return (NULL);
+    }
+    printf("LALALAL");
+    printDirectory(rootDir);
     return (rootDir);
 }
 
@@ -59,9 +66,15 @@ struct st_directory *parsePath(int startDirectory, int blockSize, char *path) {
     nDir = getDir(startDirectory, blockSize, nDir);
 
     while ((token = strtok_r(pToken, "/", &pToken)) && token != NULL) {
+        printf("A\n");
+        fflush(NULL);
         for (int i = 0; i != nDir[0].nbDir && end != 1; i++) {
             if (strcmp(nDir[i].name, token) == 0) {
+                printf("B\n");
+                fflush(NULL);
                 nDir = getDir(nDir[i].startBlockNb, blockSize, nDir);
+                printf("C\n");
+                fflush(NULL);
                 end = 1;
             }
         }
