@@ -37,8 +37,6 @@ struct st_directory *getDir(int startDirectory, int blockSize, struct st_directo
         printf("Error while reading\n");
         return (NULL);
     }
-    printf("LALALAL");
-    printDirectory(rootDir);
     return (rootDir);
 }
 
