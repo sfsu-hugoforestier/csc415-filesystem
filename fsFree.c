@@ -74,8 +74,7 @@ int getFreeSpace(st_vcb *sVCB, int nbBlocks, int blockSize, int numberOfBlocks) 
         printf("Error while writing the VCB to the volume\n");
         return (-1);
     }
-    int returnValue = sVCB->indexFreeSpace - nbBlocks;
-    return (returnValue);
+    return (sVCB->indexFreeSpace - nbBlocks);
 }
 
 int freeSpace(int startBlock, int nbBlock) {
