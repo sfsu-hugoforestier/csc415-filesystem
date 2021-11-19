@@ -56,7 +56,6 @@ st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
     if (rVCB->startDirectory == -1)
         return (NULL);
     // Write the vcb to block 0
-
     nbBlocksWrote = LBAwrite(rVCB, 1, 0);
     if (nbBlocksWrote == -1) {
         printf("Error while writing\n");

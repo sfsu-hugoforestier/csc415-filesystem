@@ -53,7 +53,6 @@ int initializeDirectories(st_vcb *rVCB, int blockSize, int numberOfBlocks) {
             end = 1;
         }
     }
-    printf("In initializeDirectories sizeMallocDir: %i\n", sizeMallocDir);
     sDir = calloc(nbDir, sizeof(struct st_directory));
     if (sDir == NULL) {
         printf("Error while allocating the memory for sDir\n");
@@ -127,6 +126,7 @@ int createDir(struct st_directory *cwdDir, int index, const char *pathname) {
     LBAwrite(nDir, nbBlocks, iBlock);
     LBAwrite(cwdDir, nbBlocks, cwdDir[0].startBlockNb);
 
+    printf("iBlock: %i\n", iBlock);
     free(nDir);
     nDir = NULL;
     return (0);
@@ -134,7 +134,7 @@ int createDir(struct st_directory *cwdDir, int index, const char *pathname) {
 
 //TODO: TO REMOVE AFTER MERGE
 char *fs_getcwd(char *buf, size_t length) {
-    strcpy(buf, "/\0");
+    strcpy(buf, "/");
     return (buf);
 }
 
@@ -154,6 +154,11 @@ int fs_mkdir(const char *pathname, mode_t mode) {
     sCWD = fs_getcwd(dir_buf, DIRMAX_LEN);
     cwDir = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, sCWD);
 
+    if (cwDir == NULL) {
+        printf("cwDir is null\n");
+        return (-1);
+    }
+
     //Check if dir is already created
     for(int i = 0; i != cwDir[0].nbDir; i++) {
         if (strcmp(cwDir[i].name, pathname) == 0) {
@@ -165,6 +170,7 @@ int fs_mkdir(const char *pathname, mode_t mode) {
             return (-1);
         }
     }
+        printf("AA");
 
     //No child - create directory
     for(int i = 0; i != cwDir[0].nbDir; i++) {
