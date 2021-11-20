@@ -153,7 +153,9 @@ int fs_mkdir(const char *pathname, mode_t mode) {
     }
 
     sCWD = fs_getcwd(dir_buf, DIRMAX_LEN);
-    cwDir = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, sCWD);
+    // CHANGE THIS
+    dir_buf = fs_getcwd(dir_buf, DIRMAX_LEN);
+    cwDir = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, dir_buf);
 
     if (cwDir == NULL) {
         printf("cwDir is null\n");
