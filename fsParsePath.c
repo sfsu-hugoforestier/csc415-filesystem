@@ -90,6 +90,8 @@ struct st_directory *parsePath(int startDirectory, int blockSize, char *path) {
     struct st_directory *nDir = NULL;
     char *dir_buf = malloc(DIRMAX_LEN + 1);
 
+    if (path [0]== '.')
+        path++;
     if (dir_buf == NULL) {
         printf("Error while mallocing dir_buf\n");
         return (NULL);
