@@ -25,8 +25,6 @@ struct st_directory {
     int nbDir;
     int isFree;
     int startBlockNb;
-    int id;
-    int parentId;
     int isDirectory;
     int sizeDirectory;
     time_t creationDate;
