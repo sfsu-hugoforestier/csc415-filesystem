@@ -503,7 +503,7 @@ int cmd_history (int argcnt, char *argvec[])
 int cmd_help (int argcnt, char *argvec[])
 	{
         printf("befor test\n");
-        fs_setcwd("test");
+        fs_setcwd("/");
 //	for (int i = 0; i < dispatchcount; i++)
 //		{
 //		printf ("%s\t%s\n", dispatchTable[i].command, dispatchTable[i].description);

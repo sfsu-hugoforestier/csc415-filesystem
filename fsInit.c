@@ -29,7 +29,6 @@
 #include "fsParsePath.h"
 
 #define SIGNATURE_VOLUME (0x2B779E6DCE5EA7F7)
-st_vcb *sVCB;
 
 st_vcb *sVCB;
 
