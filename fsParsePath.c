@@ -49,10 +49,25 @@ int getNbChar(char *string, char delim) {
     return (count);
 }
 
-struct st_directory *manageRelativePath(struct st_directory *nDir, char *path, int nbDelim) {
+struct st_directory *manageRelativePath(struct st_directory *nDir, char *path, int nbDelim, int blockSize) {
+    printf("test 1\n");
+//    if (strcmp(nDir[i].name, token) == 0) {
+//        nDir = getDir(nDir[i].startBlockNb, blockSize, nDir);
+//        end = 1;
+//    }
+
     if (strlen(path) == 1 && path[0] == '/') {
-        return (nDir);
+        path = path + 1;
+        for (int i = 0; i != nDir[0].nbDir; ++i) {
+            if (strcmp(nDir[i].name, path) == 0) {
+                nDir = getDir(nDir[i].startBlockNb, blockSize, nDir);
+                return (nDir);
+            }
+        }
+        printf("directory not found\n");
+        return(NULL);
     }
+
     if ((nbDelim == 1 && path[strlen(path)] == '/'))
         return (nDir);
     else if (nbDelim == 0)
@@ -71,6 +86,7 @@ struct st_directory *parsePath(int startDirectory, int blockSize, char *path) {
 
     if (path[0] != '/' || strlen(path) == 1)
         return (manageRelativePath(nDir, path, nbDelim));
+    printf("bonjour\n");
     while ((token = strtok_r(pToken, "/", &pToken))) {
         printf("CCCC\n");
         for (int i = 0; i != nDir[0].nbDir && end != 1; i++) {

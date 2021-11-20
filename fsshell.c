@@ -43,7 +43,7 @@
 #define CMDRM_ON	1
 #define CMDCP2L_ON	0
 #define CMDCP2FS_ON	0
-#define CMDCD_ON	0
+#define CMDCD_ON	1
 #define CMDPWD_ON	0
 
 
@@ -432,8 +432,7 @@ int cmd_cd (int argcnt, char *argvec[])
 		printf ("Usage: cd path\n");
 		return (-1);
 		}
-	char * path = argvec[1];	//argument
-
+	char *path = argvec[1];	//argument
 	if (path[0] == '"')
 		{
 		if (path[strlen(path)-1] == '"')
@@ -443,7 +442,7 @@ int cmd_cd (int argcnt, char *argvec[])
 			path[strlen(path) - 1] = 0;
 			}
 		}
-	int ret = fs_setcwd (path);
+	int ret = fs_setcwd(path);
 	if (ret != 0)	//error
 		{
 		printf ("Could not change path to %s\n", path);
@@ -504,12 +503,12 @@ int cmd_history (int argcnt, char *argvec[])
 ****************************************************/
 int cmd_help (int argcnt, char *argvec[])
 	{
-        printf("befor test\n");
-        fs_setcwd("/");
-//	for (int i = 0; i < dispatchcount; i++)
-//		{
-//		printf ("%s\t%s\n", dispatchTable[i].command, dispatchTable[i].description);
-//		}
+//        printf("befor test\n");
+//        fs_setcwd("/");
+	for (int i = 0; i < dispatchcount; i++)
+		{
+		printf ("%s\t%s\n", dispatchTable[i].command, dispatchTable[i].description);
+		}
 	return 0;
 	}
 
