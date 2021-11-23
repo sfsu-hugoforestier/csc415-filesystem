@@ -19,8 +19,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
 #include "b_io.h"
 #include "fsDirectory.h"
+#include "vcb.h"
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
@@ -94,7 +96,14 @@ int b_seek (b_io_fd fd, off_t offset, int whence) {
 
 // Interface to write function
 int b_write (b_io_fd fd, char * buffer, int count) {
-    printf("in b_write\n");
+    int writeSize = 0;
+    int writeRest = 0;
+    int spaceLeft = 0;
+    bool enoughSize = true;
+    st_vcb *VCBRef = returnVCBRef();
+    b_fcb* fcb = &fcbArray[fd];
+
+    printf("In b_write\n");
     if (startup == 0)
         b_init();  //Initialize our system
 
@@ -109,9 +118,39 @@ int b_write (b_io_fd fd, char * buffer, int count) {
 		return (-1);
 	}
 
+	spaceLeft = VCBRef->blockSize - fcb->index;
 
+    if(count > spaceLeft){
+        writeSize = spaceLeft;
+        writeRest = count - spaceLeft;
+        enoughSize = false;
+    }
+    else{
+        writeSize = count;
+        enoughSize = true;
+    }
 
-    return (0); //Change this
+    //write to block
+    memcpy(fcb->index + fcb->buf, buffer, writeSize);
+	fcb->index += writeSize;
+	fcb->index %= VCBRef->blockSize;
+
+    if(enoughSize == false){
+        //Move to next block
+        //dont know this part
+
+        //reset the index
+        fcb->index = 0;
+
+        //writes to block
+        memcpy(fcb->index + fcb->buf, buffer + copyLength, secondCopyLength);
+		fcb->index += secondCopyLength;
+		fcb->index %= bufSize;
+
+        return writeSize + writeRest;
+    }
+
+    return writeSize; 
 }
 
 
