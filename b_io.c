@@ -20,12 +20,14 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "b_io.h"
+#include "fsDirectory.h"
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
 
 typedef struct b_fcb {
     /** TODO add al the information you need in the file control block **/
+    st_directory *dir;
     char * buf;		//holds the open file buffer
     int index;		//holds the current position in the buffer
     int buflen;		//holds how many valid bytes are in the buffer
@@ -68,7 +70,7 @@ b_io_fd b_open (char * filename, int flags) {
     printf("in b_open\n");
     if (startup == 0)
         b_init();  //Initialize our system
-
+    
     returnFd = b_getFCB();				// get our own file descriptor
                     // check for error - all used FCB's
 
@@ -100,6 +102,15 @@ int b_write (b_io_fd fd, char * buffer, int count) {
     if ((fd < 0) || (fd >= MAXFCBS)) {
         return (-1); 					//invalid file descriptor
     }
+
+    if (fcbArray[fd].dir == NULL)		//File not open for this descriptor
+	{
+		printf("ERROR: File not open for this descriptor\n");	
+		return (-1);
+	}
+
+
+
     return (0); //Change this
 }
 
@@ -137,4 +148,6 @@ int b_read (b_io_fd fd, char * buffer, int count) {
 
 // Interface to Close the file
 void b_close (b_io_fd fd) {
+    free(fcbArray[fd].buff);
+	fcbArray[fd].buff = NULL;
 }

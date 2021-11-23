@@ -205,7 +205,7 @@ int fs_rmdir(const char *pathname){
     st_vcb *VCBRef = returnVCBRef();
 
     strcpy(pathNameHolder, pathname);
-    //printf("BEFORE PARSE\n");
+    printf("pathName - %s\n",pathname);
     nDir = parsePath(VCBRef->startDirectory, VCBRef->blockSize, pathNameHolder);
 
     //cant find - return error
@@ -213,18 +213,20 @@ int fs_rmdir(const char *pathname){
         return -1;
     }
 
-    //if it has children - return error not empty
-    if(nDir[0].nbDir > 1){
-        printf("ERROR: %s has children files\nCannot delete\n",nDir[0].name);
-        return -1;
-    }
-
-    //else kill Dir
     //get cwd
     char * dir_buf = malloc (DIRMAX_LEN +1);
     char *cwd = malloc(DIRMAX_LEN +1);
     cwd = fs_getcwd(dir_buf,DIRMAX_LEN);
     nCwd = parsePath(VCBRef->startDirectory, VCBRef->blockSize, cwd);
+
+    //if it has children - return error not empty
+    printf("NUM FILES - %d\n",nDir[0].nbDir);
+    if(nDir[0].nbDir > 1){
+        printf("ERROR: %s has children files\nCannot delete\n",pathname);
+        return -1;
+    }
+
+    //else kill Dir
 
     //search cwd for dir to delete
     for(int i = 0; i != nCwd[0].nbDir; i++){
