@@ -22,9 +22,39 @@
 //#include "fsInit.h"
 #include "fsParsePath.h"
 #include "fsUtils.h"
-char *path  = NULL;
+
+char *MyPath  = "/";
+
 st_vcb *returnVCBRef();
 
+
+char *returnPath() {
+
+    return MyPath;
+}
+
+char *remove_extra_dir(char *tmp_path) {
+    int slash_count = 1;
+    int i = strlen(tmp_path);
+    for (; i >= 0 ; i--) {
+        if (tmp_path[i] == '/' && slash_count == 0) {
+            tmp_path[i] = '\0';
+            break;
+        }
+
+        if (tmp_path[i] == '/')
+            slash_count--;
+    }
+
+    char *tmp = malloc(sizeof(char) * strlen(tmp_path));
+    if (tmp_path[0] == '\0')
+        strcpy(tmp, "/");
+    else
+        strcpy(tmp, tmp_path);
+
+    free(tmp_path);
+    return tmp;
+}
 void remove_extra_slash(char * path)
 {
     int i = 0;
@@ -85,25 +115,52 @@ void printvcb(st_vcb *tmp) {
     printf("\n\n");
 }
 int fs_setcwd(char *buf) {
-    printf("my path ==> %s\n", buf);
+    printf("\nmy path ==> %s\n", buf);
     st_vcb *tmp = returnVCBRef();
     printf("[LOG] DEBUG \n");
     if (buf == NULL)
         return 84;
-    struct st_directory *tmp_dir = parsePath(tmp->startDirectory, tmp->blockSize, buf);
-    printdir(tmp_dir);
-    printDirectory(tmp_dir);
+
+
+    char *tmppath = malloc(sizeof(char) * (strlen(buf) + strlen(MyPath) + 2));
+
+    strcpy(tmppath, MyPath);
+    if (strlen(MyPath) > 1)
+        strcat(tmppath, "/");
+    strcat(tmppath, buf);
+    if (!strcmp(buf, ".."))
+        tmppath = remove_extra_dir(tmppath);
+
+
+    printf(" [BEFORE] tmp path = %s\n", tmppath);
+    struct st_directory *tmp_dir = parsePath(tmp->startDirectory, tmp->blockSize, tmppath);
+    if (tmp_dir == NULL)
+        return 84;
+
+//    printdir(tmp_dir);
+//    printDirectory(tmp_dir);
+
+
+    printf(" [AFTER] tmp path = %s\n", tmppath);
+
+// TODO do  a FREE of path
+    MyPath = tmppath;
+
+
+    printf("my path = %s\n", MyPath);
 //    if (path == NULL) {
-//        path = malloc(sizeof(char) * (strlen(buf) + 1));
+//        path = malloc(sizeof(char) * (strlen(buf) + 2));
 //        if (path == NULL)
 //            return 84;
 //        strcpy(path, buf);
+//        strcpy(result, "/");
+//        strcat(result, s2);
 //        return 1;
 //    } else {
 //
 //
 //    }
-//    return 1;
+    return 1;
 
 
 
@@ -120,7 +177,6 @@ int fs_setcwd(char *buf) {
 //        path = temp;
 //    }
 //    return 0;
-    return 0;
 }
 //
 //char *fs_getcwd(char *buf, size_t size) {
