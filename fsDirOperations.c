@@ -59,6 +59,7 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
         char path[64];
         strcpy(dirInfo->d_name, path);
         dirp->d_reclen = dirInfo->d_reclen;
+        index = dirInfo->d_reclen + index;
     }    
     return (dirInfo);
 }  
