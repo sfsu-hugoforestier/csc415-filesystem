@@ -20,7 +20,7 @@ fdDir *fs_openDir(const char *name) {
     st_vcb *sVCB = returnVCBRef();
     fdDir *fDir = malloc(sizeof(fdDir));
     //will this work with updated parse path?
-    struct st_directory *nDir = parsePath(sVCB->startDirectory, sVCB->blockSize, name);
+    struct st_directory * nDir = parsePath(sVCB->startDirectory, sVCB->blockSize, name);
 
     // CHECK IF VALUE RETURNED CORRECT OR NOT
     //parsePath();
@@ -50,6 +50,7 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
 
     if (dirp->directoryStartLocation = NULL){
         dirp->directoryStartLocation = 0;
+        
         return (NULL);
     }
     //nbDir = dirEntry[0]
@@ -65,7 +66,6 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
 }  
 
 int fs_closedir(fdDir *dirp) {
-    fdDir *dirp = NULL;
     free(dirp);
     return 0;
 }
