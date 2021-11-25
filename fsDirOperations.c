@@ -45,14 +45,19 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
         printf("Error while mallocing dirInfo\n");
         return (NULL);
     }
+    if (dirp->directoryStartLocation = NULL){
+        dirp->directoryStartLocation = 0;
+        return NULL;
+    }
+    if(dirp->d_reclen > dirp->dirEntryPosition){
+
+    }
     char path[64];
     strcpy(dirInfo->d_name, path);
-    //struct st_directory *rDir;
-    while (dirp->directoryStartLocation != NULL){
-        for(int i = dirp->dirEntryPosition; i < dirp->d_reclen){
-            parsePath()
-        }
-    }
+    
+    //dirInfo pointer with lesser value until end when dirp->d_reclen set to 0 again
+    //make index with d_reclen
+    
     return (dirInfo);
 }  
 
