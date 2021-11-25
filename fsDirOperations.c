@@ -41,26 +41,30 @@ fdDir *fs_openDir(const char *name) {
 struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
     struct fs_diriteminfo *dirInfo = malloc(sizeof(struct fs_diriteminfo) * dirp->d_reclen);
     //int *dirInfo = *dirp->fs_diriteminfo;
+    short index;
+    index = 0;
     if (dirInfo == NULL) {
         printf("Error while mallocing dirInfo\n");
         return (NULL);
     }
+
     if (dirp->directoryStartLocation = NULL){
         dirp->directoryStartLocation = 0;
-        return NULL;
+        return (NULL);
     }
-    if(dirp->d_reclen > dirp->dirEntryPosition){
-
-    }
-    char path[64];
-    strcpy(dirInfo->d_name, path);
-    
-    //dirInfo pointer with lesser value until end when dirp->d_reclen set to 0 again
-    //make index with d_reclen
-    
+    //nbDir = dirEntry[0]
+    if(index > dirp->d_reclen)
+    {
+        dirp->dirEntryPosition++;
+        char path[64];
+        strcpy(dirInfo->d_name, path);
+        dirp->d_reclen = dirInfo->d_reclen;
+    }    
     return (dirInfo);
 }  
 
 int fs_closedir(fdDir *dirp) {
+    fdDir *dirp = NULL;
+    free(dirp);
     return 0;
 }
