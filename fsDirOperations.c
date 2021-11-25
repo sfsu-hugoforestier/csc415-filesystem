@@ -53,7 +53,7 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
         return (NULL);
     }
     //nbDir = dirEntry[0]
-    if(index > dirp->d_reclen)
+    if(index < dirp->d_reclen)
     {
         dirp->dirEntryPosition++;
         char path[64];
