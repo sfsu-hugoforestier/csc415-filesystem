@@ -99,11 +99,12 @@ int b_write (b_io_fd fd, char * buffer, int count) {
     int writeSize = 0;
     int writeRest = 0;
     int spaceLeft = 0;
+    int newBlockResult = 0;
     bool enoughSize = true;
     st_vcb *VCBRef = returnVCBRef();
     b_fcb* fcb = &fcbArray[fd];
 
-    printf("In b_write\n");
+    //printf("In b_write\n");
     if (startup == 0)
         b_init();  //Initialize our system
 
@@ -137,15 +138,20 @@ int b_write (b_io_fd fd, char * buffer, int count) {
 
     if(enoughSize == false){
         //Move to next block
-        //dont know this part
+        newBlockResult = getFreeSpace(VCBRef,1,VCBRef->blockSize,VCBRef->numberOfBlocks);
+        if(newBlockResult == -1){
+            printf("ERROR: We had trouble finding a new free block to write to!");
+            return -1;
+        }
 
         //reset the index
         fcb->index = 0;
 
         //writes to block
         memcpy(fcb->index + fcb->buf, buffer + copyLength, secondCopyLength);
+
 		fcb->index += secondCopyLength;
-		fcb->index %= bufSize;
+		fcb->index %= VCBRef->blockSize;
 
         return writeSize + writeRest;
     }
