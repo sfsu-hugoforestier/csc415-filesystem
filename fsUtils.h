@@ -17,5 +17,6 @@
 #include "fsDirectory.h"
 
 void printDirectory(struct st_directory *dir);
+void printInfoDirectory(struct st_directory *dir);
 
 #endif

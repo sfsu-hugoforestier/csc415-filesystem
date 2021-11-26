@@ -20,5 +20,6 @@
 
 struct st_directory *parsePath(int startDirectory, int blockSize, char *path);
 struct st_directory *getDir(int startDirectory, int blockSize, struct st_directory *rootDir);
+int getNbChar(char *string, char delim);
 
 #endif
