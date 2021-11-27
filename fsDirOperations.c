@@ -50,13 +50,12 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
 
     if (dirp->directoryStartLocation = NULL){
         dirp->directoryStartLocation = 0;
-        
         return (NULL);
     }
     //nbDir = dirEntry[0]
     if(index < dirp->d_reclen)
     {
-        dirp->dirEntryPosition++;
+        dirp->dirEntryPosition = dirp->dirEntryPosition + 1; 
         char path[64];
         strcpy(dirInfo->d_name, path);
         dirp->d_reclen = dirInfo->d_reclen;
@@ -68,4 +67,20 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
 int fs_closedir(fdDir *dirp) {
     free(dirp);
     return 0;
+}
+
+int fs_stat(const char *path, struct fs_stat *buf) {
+    st_vcb *sVCB = returnVCBRef();
+    char *name = path;
+    struct st_directory *fDir = parsePath(sVCB->startDirectory, 512, path);
+    if(name){
+        //size in bytes from malloc of directory
+        buf->st_size = fDir->sizeDirectory;
+        // this will probably nag about casting
+        buf->st_blksize = (fDir->sizeDirectory / 512);
+        buf->st_createtime = fDir->creationDate;
+        buf->st_modtime = fDir->lastModDate; 
+    }
+    //pull back Hugo's parsepath and set our stats with buffer
+
 }
