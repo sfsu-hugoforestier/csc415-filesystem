@@ -19,7 +19,8 @@
 fdDir *fs_openDir(const char *name) {
     st_vcb *sVCB = returnVCBRef();
     fdDir *fDir = malloc(sizeof(fdDir));
-    //will this work with updated parse path?
+    //  TODO: ERROR implicit declaration of function ‘parsePath’
+    //  TODO: ERROR initialization makes pointer from integer without a cast
     struct st_directory * nDir = parsePath(sVCB->startDirectory, sVCB->blockSize, name);
 
     // CHECK IF VALUE RETURNED CORRECT OR NOT
@@ -33,7 +34,6 @@ fdDir *fs_openDir(const char *name) {
     fDir->directoryStartLocation = nDir->startBlockNb;
     fDir->dirEntryPosition = 0;
     fDir->d_reclen = nDir->nbDir;
-    //fDir->fs_diriteminfo = ;
     printf("--------------Directory Found----------------\n");
     return (fDir);
 }
@@ -47,7 +47,7 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
         printf("Error while mallocing dirInfo\n");
         return (NULL);
     }
-
+    // TODO: assignment makes integer from pointer without a cast 
     if (dirp->directoryStartLocation = NULL){
         dirp->directoryStartLocation = 0;
         return (NULL);
@@ -71,7 +71,8 @@ int fs_closedir(fdDir *dirp) {
 
 int fs_stat(const char *path, struct fs_stat *buf) {
     st_vcb *sVCB = returnVCBRef();
-    char *name = path;
+    const char *name = path;
+    // TODO: initialization makes pointer from integer without a cast
     struct st_directory *fDir = parsePath(sVCB->startDirectory, 512, path);
     if(name){
         //size in bytes from malloc of directory
@@ -82,5 +83,4 @@ int fs_stat(const char *path, struct fs_stat *buf) {
         buf->st_modtime = fDir->lastModDate; 
     }
     //pull back Hugo's parsepath and set our stats with buffer
-
 }
