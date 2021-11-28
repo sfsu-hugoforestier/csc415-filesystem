@@ -116,10 +116,6 @@ int initializeDirectories(st_vcb *rVCB, int blockSize, int numberOfBlocks) {
 
     iBlock = getFreeSpace(rVCB, nbBlocks, blockSize, numberOfBlocks);
     sDir = initDefaultDir(sDir, iBlock, sizeMallocDir, nbDir);
-
-    if (iBlock == 5) {
-        printf("Wrote at pos 5");
-    }
     LBAwrite(sDir, nbBlocks, iBlock);
     free(sDir);
     return (iBlock);
@@ -187,17 +183,8 @@ int createDir(int nbDir, int index, const char *pathname) {
     strcpy(prevDir[index].name, parsedFolderName);
     prevDir[index].isDirectory = TRUE;
     prevDir[index].sizeDirectory = prevDir[0].sizeDirectory;
-    if (iBlock == 5 || prevDir[0].startBlockNb == 5) {
-        printf("Wrote at pos 5");
-    } else {
-        printf("iBlock: %i\tprevDir[0].startBlockNb: %i\n", iBlock, prevDir[0].startBlockNb);
-    }
     LBAwrite(nDir, nbBlocks, iBlock);
     LBAwrite(prevDir, nbBlocks, prevDir[0].startBlockNb);
-
-    printDirectory(prevDir);
-    printDirectory(nDir);
-
 
     free(nDir);
     nDir = NULL;
@@ -225,7 +212,7 @@ int fs_mkdir(const char *pathname, mode_t mode) {
 
     sCWD = fs_getcwd(dir_buf, DIRMAX_LEN);
     sCWD = parsePathName(pathname, sCWD);
-    cwDir = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, "/");
+    cwDir = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, sCWD);
 
     if (cwDir == NULL) {
         printf("cwDir is null\n");
@@ -282,7 +269,6 @@ int fs_rmdir(const char *pathname){
     st_vcb *VCBRef = returnVCBRef();
 
     strcpy(pathNameHolder, pathname);
-    //printf("BEFORE PARSE\n");
     nDir = parsePath(VCBRef->startDirectory, VCBRef->blockSize, pathNameHolder);
 
     //cant find - return error
