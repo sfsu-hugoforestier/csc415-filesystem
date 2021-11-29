@@ -60,6 +60,7 @@ int getFreeSpace(st_vcb *sVCB, int nbBlocks, int blockSize, int numberOfBlocks) 
             foundSpace = TRUE;
         }
     }
+    //i = sVCB->indexFreeSpace;
     for (int y = i; y != (i + nbBlocks); y++) {
         fMap[y / 8] |= orMap[y % 8];
     }
@@ -79,6 +80,9 @@ int getFreeSpace(st_vcb *sVCB, int nbBlocks, int blockSize, int numberOfBlocks) 
 
 int freeSpace(int startBlock, int nbBlock) {
     char andMap[8];
+    st_vcb *VCBRef = returnVCBRef();
+    int fsBlockCount = (((VCBRef->numberOfBlocks + 7) / 8) + (VCBRef->blockSize - 1)) / VCBRef->blockSize;
+    int nbWrote = 0;
     andMap[0] = 0x7F;
     andMap[1] = 0xBF;
     andMap[2] = 0xDF;
@@ -90,6 +94,11 @@ int freeSpace(int startBlock, int nbBlock) {
 
     for (int i = startBlock; i != startBlock + nbBlock; i++) {
         fMap[i / 8] &= andMap[i % 8];
+    }
+    nbWrote = LBAwrite(fMap, fsBlockCount, 1);
+    if (nbWrote != fsBlockCount) {
+        printf("Error while writing the fMap to the volume\n");
+        return (-1);
     }
     return (0);
 }

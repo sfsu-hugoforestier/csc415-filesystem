@@ -46,12 +46,24 @@ char *remove_extra_dir(char *tmp_path) {
             slash_count--;
     }
 
-    char *tmp = malloc(sizeof(char) * strlen(tmp_path));
-    if (tmp_path[0] == '\0')
-        strcpy(tmp, "/");
-    else
-        strcpy(tmp, tmp_path);
+    char *tmp = NULL;
 
+    if (tmp_path[0] == '\0') {
+        tmp = malloc(sizeof(char) + 1);
+        if (tmp == NULL) {
+            printf("Error while mallocing\n");
+            return (NULL);
+        }
+        strcpy(tmp, "/");
+    }
+    else {
+        tmp = malloc(sizeof(char) * strlen(tmp_path));
+        if (tmp == NULL) {
+            printf("Error while mallocing\n");
+            return (NULL);
+        }
+        strcpy(tmp, tmp_path);
+    }
     free(tmp_path);
     return tmp;
 }
@@ -229,20 +241,19 @@ char *fs_getcwd(char *buf, size_t size) {
 
 
 int fs_isDir(char *path) {
-    st_vcb *myVCB = returnVCBRef();
-
-    struct st_directory *return_dir = parsePath(myVCB->startDirectory, myVCB->blockSize, path);
+    st_vcb *tmp = returnVCBRef();
+    struct st_directory *return_dir = parsePath(tmp->startDirectory, tmp->blockSize, path);
 
     if (return_dir == NULL) {
         printf("[LOG] isDir tmp_dir is NULL \n");
-        return (-1);
+        return (0);
     }
 
     if (return_dir->isDirectory == 0) {
         printf("[LOG] isDir return_dir->isDirectory == 0 \n");
-        return (-1);
+        return (0);
     }
-    return 0;
+    return (1);
 }
 
 int fs_isFile(char *path) {

@@ -29,7 +29,7 @@
 
 #include "fsParsePath.h"
 
-st_vcb *sVCB = NULL;
+st_vcb *sVCB;
 
 void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
     sVCB->blockSize = blockSize;
