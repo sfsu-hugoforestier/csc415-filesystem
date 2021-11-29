@@ -306,31 +306,3 @@ int fs_rmdir(const char *pathname){
     cwd = NULL;
     return 0;
 }
-
-//TODO: NEED TO DELETE FUNCTION BELOW AFTER MERGING
-int fs_isDir(char * path)
-{
-    int i;
-    for(i = 0; i < strlen(path); i++) {
-        if(path[i] == '/') {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-
-int fs_isFile(char * path)
-{
-    if(fs_isDir(path) == 1) {
-        return 0;
-    } else {
-        return 1;
-    }
-}
-
-
-int fs_delete(char* filename) {
-    // REMOVE THE FILE
-    return 0;
-}
