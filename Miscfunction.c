@@ -23,7 +23,7 @@
 #include "fsParsePath.h"
 #include "fsUtils.h"
 
-char *MyPath  = "/";
+char *MyPath  = NULL;
 
 st_vcb *returnVCBRef();
 
@@ -55,12 +55,38 @@ char *remove_extra_dir(char *tmp_path) {
     free(tmp_path);
     return tmp;
 }
+void remove_extra_dot(char *path) {
+        int i = 0;
+        int j = 0;
+        int len = strlen(path);
+        char *temp = malloc(sizeof(char) * len);
+        while(path[i] != '\0') {
+            if(path[i] == '.') {
+                if(i+1 == strlen(path)) {
+                    i++;
+                } else {
+                    temp[j] = path[i];
+                    j++;
+                }
+            } else {
+                temp[j] = path[i];
+                j++;
+            }
+            i++;
+        }
+        temp[j] = '\0';
+        strcpy(path, temp);
+        free(temp);
+
+}
+
+
 void remove_extra_slash(char * path)
 {
     int i = 0;
     int j = 0;
     int len = strlen(path);
-    char * temp = (char *)malloc(sizeof(char) * len);
+    char *temp = malloc(sizeof(char) * len);
     while(path[i] != '\0') {
         if(path[i] == '/') {
             if(path[i+1] == '/') {
@@ -114,7 +140,13 @@ void printvcb(st_vcb *tmp) {
     printf("startDirectory[%d]\n", tmp->startDirectory);
     printf("\n\n");
 }
+
 int fs_setcwd(char *buf) {
+    if (MyPath == NULL) {
+        MyPath = malloc(sizeof(char) * strlen("/") + 1);
+        strcpy(MyPath, "/");
+    }
+
     printf("\nmy path ==> %s\n", buf);
     st_vcb *tmp = returnVCBRef();
     printf("[LOG] DEBUG \n");
@@ -125,9 +157,12 @@ int fs_setcwd(char *buf) {
     char *tmppath = malloc(sizeof(char) * (strlen(buf) + strlen(MyPath) + 2));
 
     strcpy(tmppath, MyPath);
+    printf(" [BEFORE] tmp path = %s\n", tmppath);
     if (strlen(MyPath) > 1)
         strcat(tmppath, "/");
+    printf(" [BEFORE] tmp path = %s\n", tmppath);
     strcat(tmppath, buf);
+    printf(" [BEFORE] tmp path = %s\n", tmppath);
     if (!strcmp(buf, ".."))
         tmppath = remove_extra_dir(tmppath);
 
@@ -137,14 +172,17 @@ int fs_setcwd(char *buf) {
     if (tmp_dir == NULL)
         return 84;
 
+    // TODO add a check of is a dir or not
+
 //    printdir(tmp_dir);
-//    printDirectory(tmp_dir);
+    printDirectory(tmp_dir);
 
 
     printf(" [AFTER] tmp path = %s\n", tmppath);
 
 // TODO do  a FREE of path
-    MyPath = tmppath;
+    if (strcmp(buf, "."))
+        MyPath = tmppath;
 
 
     printf("my path = %s\n", MyPath);
@@ -160,7 +198,7 @@ int fs_setcwd(char *buf) {
 //
 //
 //    }
-    return 1;
+    return 0;
 
 
 
@@ -179,14 +217,36 @@ int fs_setcwd(char *buf) {
 //    return 0;
 }
 //
-//char *fs_getcwd(char *buf, size_t size) {
-//    if (path == NULL) {
+char *fs_getcwd(char *buf, size_t size) {
+    if (MyPath == NULL) {
+        MyPath = malloc(sizeof(char) * (strlen("/") + 1));
+        strcpy(MyPath, "/");
+        strncpy(buf, MyPath, size);
+        return MyPath;
+    }
+
+    if (buf == NULL) {
+        printf("[LOG] getcwd buff is NULL \n");
+        return NULL;
+    }
+    if (size < strlen(MyPath)) {
+        printf("[LOG] getcwd buff is too small \n");
+        return NULL;
+    }
+//    if (strlen(MyPath) == 0) {
+//        printf("[LOG] getcwd buff is empty \n");
 //        return NULL;
 //    }
-//
-//    strncpy(buf, path, size);
-//    return path;
-//}
+    if (size == 0) {
+        printf("[LOG] size is 0 \n");
+        return NULL;
+    }
+//    printf("buf = %s\n", buf);
+//    printf("size = %lu\n", size);
+    strncpy(buf, MyPath, size);
+    return MyPath;
+}
+
 //
 //int fs_isDir(char * path) {
 //    int i;
