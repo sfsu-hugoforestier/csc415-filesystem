@@ -40,7 +40,7 @@ void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
 
 st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
     int nbBlocksWrote = 0;
-    st_vcb *rVCB = calloc(1, blockSize);
+    st_vcb *rVCB = calloc(1, blockSize + 1);
 
     if (rVCB == NULL) {
         printf("Error while mallocing rVCB\n");
@@ -66,7 +66,7 @@ st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
 }
 
 st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
-    st_vcb *sVCB = calloc(1, blockSize);
+    st_vcb *sVCB = calloc(1, blockSize + 1);
 
     if (sVCB == NULL) {
         printf("Error while mallocing sVCB\n");

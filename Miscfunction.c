@@ -67,6 +67,7 @@ char *remove_extra_dir(char *tmp_path) {
     free(tmp_path);
     return tmp;
 }
+
 void remove_extra_dot(char *path) {
         int i = 0;
         int j = 0;

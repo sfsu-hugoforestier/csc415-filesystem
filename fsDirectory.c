@@ -108,7 +108,7 @@ int initializeDirectories(st_vcb *rVCB, int blockSize, int numberOfBlocks) {
             end = 1;
         }
     }
-    sDir = calloc(nbDir, sizeof(struct st_directory));
+    sDir = calloc(nbDir, sizeof(struct st_directory) + 1);
     if (sDir == NULL) {
         printf("Error while allocating the memory for sDir\n");
         return (-1);
@@ -151,8 +151,8 @@ struct st_directory *initializeNewDir(struct st_directory *nDir, int iBlock, str
 
 int createDir(int nbDir, int index, const char *pathname) {
     //create new dir
-    struct st_directory *nDir = calloc(nbDir, sizeof(struct st_directory));
-    struct st_directory *prevDir = calloc(nbDir, sizeof(struct st_directory));
+    struct st_directory *nDir = calloc(nbDir, sizeof(struct st_directory) + 1);
+    struct st_directory *prevDir = calloc(nbDir, sizeof(struct st_directory) + 1);
     st_vcb *VCBRef = returnVCBRef();
     int iBlock = 0;
     unsigned int nbBlocks = 0;
