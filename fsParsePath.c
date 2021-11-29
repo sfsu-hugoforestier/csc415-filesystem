@@ -34,15 +34,12 @@ struct st_directory *getDir(int startDirectory, int blockSize, struct st_directo
         }
     }
     rootDir = calloc(nbDir, sizeMallocDir);
-    if (rootDir == NULL) {
-        printf("Error while mallocing\n");
-        return (NULL);
-    }
     uint64_t rvRead = LBAread(rootDir, nbBlocks, startDirectory);
     if (rvRead != nbBlocks) {
         printf("Error while reading\n");
         return (NULL);
     }
+    printf("fff %s fff\n", rootDir[0].name);
     return (rootDir);
 }
 
@@ -90,18 +87,22 @@ struct st_directory *findDirectory(struct st_directory *nDir, char *path, int bl
     return (nDir);
 }
 
-struct st_directory *parsePath(int startDirectory, int blockSize, char *path) {
+struct st_directory *parsePath(int startDirectory, int blockSize, char *pathTmp) {
     struct st_directory *nDir = NULL;
     char *dir_buf = malloc(DIRMAX_LEN + 1);
+    char *path = malloc(sizeof(pathTmp));
 
-    if (path[0] == '.')
-        path++;
-    if (dir_buf == NULL) {
+    if (dir_buf == NULL || path == NULL) {
         printf("Error while mallocing dir_buf\n");
         return (NULL);
     }
+    strcpy(path, pathTmp);
+    if (path[0] == '.')
+        path++;
     dir_buf = fs_getcwd(dir_buf, DIRMAX_LEN);
     nDir = getDir(startDirectory, blockSize, nDir);
+    printf("in parsePath path: %s\tstartDirectory: %i\tblockSize: %i\n", path, startDirectory, blockSize);
+    printDirectory(nDir);
     if (path[0] == '/')
         return (findDirectory(nDir, path/*dir_buf*/, blockSize));
     nDir = findDirectory(nDir, dir_buf, blockSize);
