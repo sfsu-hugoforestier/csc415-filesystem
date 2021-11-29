@@ -191,11 +191,6 @@ int createDir(int nbDir, int index, const char *pathname) {
     return (0);
 }
 
-////TODO: TO REMOVE AFTER MERGE
-//char *fs_getcwd(char *buf, size_t length) {
-//    strcpy(buf, "/");
-//    return (buf);
-//}
 
 //TODO: Remove directories that are in nested directories, not within the CWD dir
 int fs_mkdir(const char *pathname, mode_t mode) {
