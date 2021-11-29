@@ -39,7 +39,6 @@ struct st_directory *getDir(int startDirectory, int blockSize, struct st_directo
         printf("Error while reading\n");
         return (NULL);
     }
-    printf("fff %s fff\n", rootDir[0].name);
     return (rootDir);
 }
 
@@ -87,29 +86,32 @@ struct st_directory *findDirectory(struct st_directory *nDir, char *path, int bl
     return (nDir);
 }
 
-struct st_directory *parsePath(int startDirectory, int blockSize, char *pathTmp) {
+char *shiftPath(char *path) {
+    for (int i = 0; i != strlen(path) - 1; i++) {
+        path[i] = path[i + 1];
+    }
+    return (path);
+}
+
+struct st_directory *parsePath(int startDirectory, int blockSize, char *path) {
     struct st_directory *nDir = NULL;
     char *dir_buf = malloc(DIRMAX_LEN + 1);
-    char *path = malloc(sizeof(pathTmp));
 
-    if (dir_buf == NULL || path == NULL) {
+    if (dir_buf == NULL) {
         printf("Error while mallocing dir_buf\n");
         return (NULL);
     }
-    strcpy(path, pathTmp);
     if (path[0] == '.')
-        path++;
+        path = shiftPath(path);
     dir_buf = fs_getcwd(dir_buf, DIRMAX_LEN);
     nDir = getDir(startDirectory, blockSize, nDir);
-    printf("in parsePath path: %s\tstartDirectory: %i\tblockSize: %i\n", path, startDirectory, blockSize);
-    printDirectory(nDir);
     if (path[0] == '/')
-        return (findDirectory(nDir, path/*dir_buf*/, blockSize));
+        return (findDirectory(nDir, path, blockSize));
     nDir = findDirectory(nDir, dir_buf, blockSize);
     if (nDir == NULL) {
         printf("Error when fetching CWD\n");
         return (NULL);
     }
-    nDir = findDirectory(nDir, path/*dir_buf*/, blockSize);
+    nDir = findDirectory(nDir, path, blockSize);
     return (nDir);
 }

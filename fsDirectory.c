@@ -279,9 +279,9 @@ int fs_rmdir(const char *pathname){
 
     //else kill Dir
     //get cwd
-    char * dir_buf = malloc (DIRMAX_LEN +1);
-    char *cwd = malloc(DIRMAX_LEN +1);
-    cwd = fs_getcwd(dir_buf,DIRMAX_LEN);
+    char * dir_buf = malloc(DIRMAX_LEN + 1);
+    char *cwd = malloc(DIRMAX_LEN + 1);
+    cwd = fs_getcwd(dir_buf, DIRMAX_LEN);
     nCwd = parsePath(VCBRef->startDirectory, VCBRef->blockSize, cwd);
 
     //search cwd for dir to delete
