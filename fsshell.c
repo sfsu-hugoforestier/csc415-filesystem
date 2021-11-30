@@ -289,30 +289,38 @@ int cmd_mv (int argcnt, char *argvec[])
     int nbBlocksNew = 0;
     char *fileName = NULL;
 
-    if (argcnt != 3 || argvec[0] == NULL || argvec[1] == NULL) {
+    // Making sure that the args are correct
+    if (argcnt != 3 || argvec[1] == NULL || argvec[2] == NULL) {
         printf("Error wrong format\n");
         return (-1);
     }
 
-    fileName = calloc(strlen(argvec[0]), sizeof(char));
+    fileName = calloc(strlen(argvec[1]), sizeof(char));
     if (oldParent == NULL || fileName == NULL) {
         printf("Error while allocation the memory\n");
         return (-1);
     }
-    fileName = fetchDirName(argvec[0], fileName);
-    if (parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, argvec[0]) == NULL)
-        return (-1);
-    oldParent = parsePathName(argvec[1], oldParent);
+
+    // In order to check find the file entry in the parent directory, i fetch the directory's name
+    fileName = fetchDirName(argvec[1], fileName);
+
+    // Make sure that the paths exists
     if (parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, argvec[1]) == NULL)
         return (-1);
+    // Fetch the parent directory in order to then change the value of isFree
+    oldParent = parsePathName(argvec[2], oldParent);
+    if (parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, argvec[2]) == NULL)
+        return (-1);
+    // Fetch both the old parent directory and the new one
     cwdOldParent = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, oldParent);
-    cwdNewParent = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, argvec[1]);
+    cwdNewParent = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, argvec[2]);
     if (cwdOldParent == NULL || cwdNewParent == NULL)
         return (-1);
     nbBlocksOld = (cwdOldParent[0].sizeDirectory / returnVCBRef()->blockSize) + 1;
     nbBlocksNew = (cwdNewParent[0].sizeDirectory / returnVCBRef()->blockSize) + 1;
+    // Change the values in the directory structs and write it to the volume
     for (int i = 0; i != cwdOldParent[0].nbDir; i++) {
-        if (strcmp(cwdOldParent[0].name, fileName) == 0) {
+        if (strcmp(cwdOldParent[i].name, fileName) == 0) {
             for (int y = 0; y != cwdNewParent[0].nbDir; y++) {
                 if (cwdNewParent[y].isFree == TRUE) {
                     cwdNewParent[y] = cwdOldParent[i];

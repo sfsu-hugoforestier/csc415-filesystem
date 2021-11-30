@@ -18,6 +18,7 @@
 
 #define DIRMAX_LEN 4096
 
+// Fetch the root dir by reading from the volume
 struct st_directory *getDir(int startDirectory, int blockSize, struct st_directory *rootDir) {
     unsigned int sizeMallocDir = sizeof(struct st_directory) * DIRECTORY_ENTRIES;
     unsigned int nbBlocks = (sizeMallocDir / blockSize) + 1;
@@ -42,6 +43,7 @@ struct st_directory *getDir(int startDirectory, int blockSize, struct st_directo
     return (rootDir);
 }
 
+// Count the number of character given as argument
 int getNbChar(char *string, char delim) {
     int count = 0;
 
@@ -59,7 +61,7 @@ struct st_directory *findDirectory(struct st_directory *nDir, char *path, int bl
     unsigned int nbLooped = 0;
     unsigned int nbDelim = getNbChar(path, '/');
 
-    printf("in findDirectory\n");
+    // If we only need to search for one directory
     if (path[0] != '/' && nbDelim == 0) {
         for (int i = 0; i != nDir[0].nbDir && end != 1; i++) {
             if (strcmp(nDir[i].name, path) == 0) {
@@ -72,12 +74,14 @@ struct st_directory *findDirectory(struct st_directory *nDir, char *path, int bl
         printf("Could not find %s\n", path);
         return (NULL);
     }
+    // Loop through all the directory entries, when we find the one we
+    // are looking for we go inside of it and keep going until we reach
+    // the directory we want
     while ((token = strtok_r(pToken, "/", &pToken))) {
         for (int i = 0; i != nDir[0].nbDir && end != 1; i++) {
             if (strcmp(nDir[i].name, token) == 0 && nDir[i].isFree != TRUE) {
                 printf("found dir\n");
                 nDir = getDir(nDir[i].startBlockNb, blockSize, nDir);
-                printDirectory(nDir);
                 end = 1;
             }
         }
@@ -102,21 +106,28 @@ struct st_directory *parsePath(int startDirectory, int blockSize, char *path) {
     struct st_directory *nDir = NULL;
     char *dir_buf = malloc(DIRMAX_LEN + 1);
 
+    // Make sure that the malloc worked properly
     if (dir_buf == NULL) {
         printf("Error while mallocing dir_buf\n");
         return (NULL);
     }
+    // Ignore if the path starts with a '.'
     if (path[0] == '.')
         path = shiftPath(path);
     dir_buf = fs_getcwd(dir_buf, DIRMAX_LEN);
+    // Fetch the root directory of the filesystem, in order to start searching
     nDir = getDir(startDirectory, blockSize, nDir);
+    // If absolute path we directly search for the path
     if (path[0] == '/')
         return (findDirectory(nDir, path, blockSize));
+    // Fetch the directory struct for the current working directory
+    // so that we can start searching for the path, start at the right place
     nDir = findDirectory(nDir, dir_buf, blockSize);
     if (nDir == NULL) {
         printf("Error when fetching CWD\n");
         return (NULL);
     }
+    // Search for the directory with the given path
     nDir = findDirectory(nDir, path, blockSize);
     return (nDir);
 }
