@@ -20,6 +20,8 @@ fdDir *fs_opendir(const char *name) {
     st_vcb *sVCB = returnVCBRef();
     fdDir *fDir = malloc(sizeof(fdDir));
     struct st_directory * incomingDir = NULL;
+    char path[64]; 
+    name = path;
     // CHECK IF VALUE RETURNED CORRECT OR NOT
     //parsePath();
     if (fDir == NULL){
@@ -42,6 +44,7 @@ fdDir *fs_opendir(const char *name) {
     fDir->children = incomingDir->nbDir;
     //strcpy(name, fDir->path);
     fDir->d_reclen = incomingDir->sizeDirectory;
+    strcpy(path, fDir->directoryName);
     return(fDir);
 }
 
@@ -54,6 +57,8 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
 
     if (readdirCounter == dirp->d_reclen){
         readdirCounter = 0;
+        free(dirInfo);
+        dirInfo = NULL;
         return (NULL);
     }
 
@@ -70,9 +75,20 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
     //nbDir = dirEntry[0], sort through nbDir 0 to whatever
     //dirp->d_reclen = dirInfo->d_reclen;
     //char path[64];
-    //nDir = parsePath(dirp->directoryStartLocation, 512, dirp->path);
-    dirp->dirEntryPosition = dirp->dirEntryPosition + 1;
-    strcpy(dirInfo->d_name, dirp);
+    nDir = parsePath(sVCB->startDirectory, sVCB->blockSize, dirp->directoryName);
+    if (nDir == NULL){
+        printf("Error locating directory");
+        return (NULL);
+    }
+    dirInfo->d_reclen = nDir->sizeDirectory/nDir->nbDir;
+    if (nDir->isDirectory == TRUE) {
+        dirInfo->fileType = DT_DIR;
+    } else {
+        dirInfo->fileType = DT_REG;
+    }
+    
+    dirp->dirEntryPosition++;
+    strcpy(dirp->directoryName, dirInfo->d_name);
     readdirCounter = readdirCounter + dirInfo->d_reclen;
     return (dirInfo);
 }
