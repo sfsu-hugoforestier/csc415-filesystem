@@ -26,22 +26,27 @@
 #include "vcb.h"
 #include "fsFree.h"
 #include "fsDirectory.h"
-#include "fsParsePath.h"
 
 #define SIGNATURE_VOLUME (0x2B779E6DCE5EA7F7)
+#include "fsParsePath.h"
 
 st_vcb *sVCB;
 
 void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
     sVCB->blockSize = blockSize;
-    sVCB->signature = SIGNATURE_VOLUME;
+    sVCB->signature = PART_SIGNATURE;
     sVCB->freeBlockSize = numberOfBlocks;
     sVCB->numberOfBlocks = numberOfBlocks;
 }
 
 st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
     int nbBlocksWrote = 0;
-    st_vcb *rVCB = malloc(blockSize);
+    st_vcb *rVCB = calloc(1, blockSize + 1);
+
+    if (rVCB == NULL) {
+        printf("Error while mallocing rVCB\n");
+        return (NULL);
+    }
 
     // Make sure that our vcb structure is correctly filled
     initializeVCB(rVCB, numberOfBlocks, blockSize);
@@ -62,7 +67,7 @@ st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
 }
 
 st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
-    st_vcb *sVCB = malloc(blockSize);
+    st_vcb *sVCB = calloc(1, blockSize + 1);
 
     if (sVCB == NULL) {
         printf("Error while mallocing sVCB\n");
@@ -76,15 +81,13 @@ st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
         return (NULL);
     }
     // Here we find out if we need to create a new volume or not
-    if (sVCB->signature == SIGNATURE_VOLUME) {
+    if (sVCB->signature == PART_SIGNATURE) {
         printf("Not formatting\n");
         readFreeSpace(sVCB, blockSize, numberOfBlocks);
         return (sVCB);
     } else {
         free(sVCB);
         printf("Formatting...\n");
-        printf("Test\n");
-        fflush(NULL);
         return (formatVolume(blockSize, numberOfBlocks));
     }
 }

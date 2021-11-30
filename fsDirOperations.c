@@ -31,7 +31,7 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
 fdDir *fs_openDir(const char *name) {
     st_vcb *sVCB = returnVCBRef();
     fdDir *fDir = malloc(sizeof(fdDir));
-    struct st_directory *nDir = parsePath(sVCB->startDirectory, sVCB->blockSize, name);
+    struct st_directory *nDir = parsePath(sVCB->startDirectory, sVCB->blockSize, (char*)name);
 
     // CHECK IF VALUE RETURNED CORRECT OR NOT
 
