@@ -42,7 +42,7 @@ fdDir *fs_openDir(const char *name) {
     fDir->directoryStartLocation = incomingDir->startBlockNb;
     fDir->dirEntryPosition = incomingDir->nbDir;
     fDir->d_reclen = incomingDir->sizeDirectory;
-    fDir->fs_dirItemInfoPointer = incomingDir->isDirectory;
+    //fDir->fs_dirItemInfoPointer = incomingDir->isDirectory;
     return(fDir);
 }
 
