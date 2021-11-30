@@ -39,7 +39,7 @@
 
 /****   SET THESE TO 1 WHEN READY TO TEST THAT COMMAND ****/
 #define CMDLS_ON	1
-#define CMDCP_ON	0
+#define CMDCP_ON	1
 #define CMDMV_ON	1
 #define CMDMD_ON	1
 #define CMDRM_ON	1
@@ -277,11 +277,6 @@ int cmd_cp (int argcnt, char *argvec[])
 int cmd_mv (int argcnt, char *argvec[])
 	{
 #if (CMDMV_ON == 1)
-    // ParsePath parent du file a bouger
-    // ParsePath chemin
-    // Changer parent initial
-    // changer new parent
-
     struct st_directory *cwdOldParent = NULL;
     struct st_directory *cwdNewParent = NULL;
     char *oldParent = malloc(DIRMAX_LEN + 1);
@@ -558,8 +553,6 @@ int cmd_history (int argcnt, char *argvec[])
 ****************************************************/
 int cmd_help (int argcnt, char *argvec[])
 	{
-//        printf("befor test\n");
-//        fs_setcwd("/");
 	for (int i = 0; i < dispatchcount; i++)
 		{
 		printf ("%s\t%s\n", dispatchTable[i].command, dispatchTable[i].description);
