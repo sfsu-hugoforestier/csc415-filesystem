@@ -26,7 +26,7 @@ fdDir *fs_openDir(const char *name) {
     //parsePath();
     if (fDir == NULL){
         printf("Error mallocing fDir");
-        return -1;
+        return (NULL);
     }
 
     incomingDir = parsePath(sVCB->startDirectory, sVCB->blockSize, name);
