@@ -185,13 +185,12 @@ int createDir(int nbDir, int index, const char *pathname) {
     printf("1: nbBlocks: %i iBlock: %i\n2: nbBlocks: %i iBlock: %i\n", nbBlocks, prevDir[0].startBlockNb, nbBlocks, iBlock);
     printDirectory(prevDir);
     printDirectory(nDir);
+
     free(nDir);
     nDir = NULL;
     return (0);
 }
 
-
-//TODO: Remove directories that are in nested directories, not within the CWD dir
 int fs_mkdir(const char *pathname, mode_t mode) {
     struct st_directory *cwDir = NULL;
     int result = 0;
@@ -249,13 +248,10 @@ int fs_mkdir(const char *pathname, mode_t mode) {
                 sCWD = NULL;
                 cwDir = NULL;
                 folderName = NULL;
-                return (-1);
             }
-            break;
         }
     }
-    printf("VVVVV");
-    fflush(NULL);
+
     free(sCWD);
     free(cwDir);
     //free(folderName);
@@ -332,5 +328,33 @@ int fs_rmdir(const char *pathname){
     dir_buf = NULL;
     free (cwd);
     cwd = NULL;
+    return 0;
+}
+
+//TODO: NEED TO DELETE FUNCTION BELOW AFTER MERGING
+int fs_isDir(char * path)
+{
+    int i;
+    for(i = 0; i < strlen(path); i++) {
+        if(path[i] == '/') {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+int fs_isFile(char * path)
+{
+    if(fs_isDir(path) == 1) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+
+int fs_delete(char* filename) {
+    // REMOVE THE FILE
     return 0;
 }
