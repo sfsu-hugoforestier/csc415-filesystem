@@ -11,15 +11,15 @@
 * functions for fs_opendir(), fs_readdir(), fs_closedir()
 **************************************************************/
 
+#include "fsParsePath.h"
 #include "fsDirOperations.h"
 #include "vcb.h"
-#include "fsParsePath.h"
 #include "mfs.h"
 
-fdDir *fs_openDir(const char *name) {
+fdDir *fs_opendir(const char *name) {
     st_vcb *sVCB = returnVCBRef();
     fdDir *fDir = malloc(sizeof(fdDir));
-    struct st_directory * incomingDir;
+    struct st_directory * incomingDir = NULL;
     //  TODO: ERROR implicit declaration of function ‘parsePath’
     //  TODO: ERROR initialization makes pointer from integer without a cast
     // CHECK IF VALUE RETURNED CORRECT OR NOT
@@ -29,13 +29,13 @@ fdDir *fs_openDir(const char *name) {
         return (NULL);
     }
 
-    incomingDir = parsePath(sVCB->startDirectory, sVCB->blockSize, name);
+    incomingDir = parsePath(sVCB->startDirectory, sVCB->blockSize, (char*)name);
     if (incomingDir == NULL) {
         printf("Error locating directory");
         return (NULL);
     } else if (incomingDir->isDirectory == FALSE) {
         printf("Not a directory");
-        return 0;
+        return (NULL);
     }
     //first directory in open at block location with our nDir will be written over
     printf("--------------Directory Found----------------\n");
@@ -53,10 +53,10 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
     index = 0;
     if (dirInfo == NULL) {
         printf("Error while mallocing dirInfo\n");
-        return (-1);
+        return (NULL);
     }
     // TODO: assignment makes integer from pointer without a cast
-    if (dirp->directoryStartLocation = NULL){
+    if (dirp->directoryStartLocation == -1) { // TO CHANGE PROBABLY
         //reset to logical block address of '.'
         dirp->directoryStartLocation = 0;
         return (NULL);
@@ -84,7 +84,7 @@ int fs_stat(const char *path, struct fs_stat *buf) {
     struct st_directory *fDir;
     const char *name = path;
     // TODO: initialization makes pointer from integer without a cast
-    fDir = parsePath(sVCB->startDirectory, sVCB->blockSize, path);
+    fDir = parsePath(sVCB->startDirectory, sVCB->blockSize, (char*)path);
     if (fDir == NULL){
         printf("Directory stats not retrievable from incoming path");
         return 0;
@@ -101,5 +101,7 @@ int fs_stat(const char *path, struct fs_stat *buf) {
     }
     //pull back Hugo's parsepath and set our stats with buffer
     //fix the reference error in lines 200 of the shell, argvc[k]. arguments coming in ./* for all
+    // A VOIR
+    return (0);
     // two arguments or more
 }

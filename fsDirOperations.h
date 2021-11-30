@@ -20,7 +20,7 @@
 #include "mfs.h"
 #include "vcb.h"
 
-fdDir *fs_openDir(const char *name);
+fdDir *fs_opendir(const char *name);
 struct fs_diriteminfo *fs_readdir(fdDir *dirp);
 int fs_closedir(fdDir *dirp);
 

@@ -27,10 +27,7 @@
 #include "fsFree.h"
 #include "fsDirectory.h"
 
-<<<<<<< HEAD
 #define SIGNATURE_VOLUME (0x2B779E6DCE5EA7F7)
-=======
->>>>>>> 1c0db3e32157d1acfdbe9938420e21dc10ec01ad
 #include "fsParsePath.h"
 
 st_vcb *sVCB = NULL;
@@ -44,11 +41,7 @@ void initializeVCB(st_vcb *sVCB, int numberOfBlocks, int blockSize) {
 
 st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
     int nbBlocksWrote = 0;
-<<<<<<< HEAD
     st_vcb *rVCB = calloc(1, blockSize + 1);
-=======
-    st_vcb *rVCB = calloc(1, blockSize);
->>>>>>> 1c0db3e32157d1acfdbe9938420e21dc10ec01ad
 
     if (rVCB == NULL) {
         printf("Error while mallocing rVCB\n");
@@ -74,11 +67,7 @@ st_vcb *formatVolume(int blockSize, int numberOfBlocks) {
 }
 
 st_vcb *checkIfVolumeExists(uint64_t numberOfBlocks, uint64_t blockSize) {
-<<<<<<< HEAD
     st_vcb *sVCB = calloc(1, blockSize + 1);
-=======
-    st_vcb *sVCB = calloc(1, blockSize);
->>>>>>> 1c0db3e32157d1acfdbe9938420e21dc10ec01ad
 
     if (sVCB == NULL) {
         printf("Error while mallocing sVCB\n");
