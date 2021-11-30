@@ -9,8 +9,6 @@
 #include "fsParsePath.h"
 #include "fsUtils.h"
 
-#define DIRMAX_LEN 4096
-
 char *parsePathName(const char *pathname, char *parsedPath) {
     int nbSlash = getNbChar((char*)pathname, '/');
     int countSlash = 0;
@@ -182,7 +180,7 @@ int createDir(int nbDir, int index, const char *pathname) {
     LBAwrite(nDir, nbBlocks, iBlock);
     LBAwrite(prevDir, nbBlocks, prevDir[0].startBlockNb);
 
-    printf("1: nbBlocks: %i iBlock: %i\n2: nbBlocks: %i iBlock: %i\n", nbBlocks, prevDir[0].startBlockNb, nbBlocks, iBlock);
+    //printf("1: nbBlocks: %i iBlock: %i\n2: nbBlocks: %i iBlock: %i\n", nbBlocks, prevDir[0].startBlockNb, nbBlocks, iBlock);
     printDirectory(prevDir);
     printDirectory(nDir);
 
@@ -248,6 +246,7 @@ int fs_mkdir(const char *pathname, mode_t mode) {
                 sCWD = NULL;
                 cwDir = NULL;
                 folderName = NULL;
+                return (0);
             }
         }
     }

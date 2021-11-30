@@ -25,6 +25,7 @@
 #include <getopt.h>
 #include <string.h>
 
+#include "fsParsePath.h"
 #include "fsLow.h"
 #include "mfs.h"
 #include "fsDirOperations.h"
@@ -39,7 +40,7 @@
 /****   SET THESE TO 1 WHEN READY TO TEST THAT COMMAND ****/
 #define CMDLS_ON	1
 #define CMDCP_ON	0
-#define CMDMV_ON	0
+#define CMDMV_ON	1
 #define CMDMD_ON	1
 #define CMDRM_ON	1
 #define CMDCP2L_ON	0
@@ -276,8 +277,54 @@ int cmd_cp (int argcnt, char *argvec[])
 int cmd_mv (int argcnt, char *argvec[])
 	{
 #if (CMDMV_ON == 1)
-	return -99;
-	// **** TODO ****  For you to implement
+    // ParsePath parent du file a bouger
+    // ParsePath chemin
+    // Changer parent initial
+    // changer new parent
+
+    struct st_directory *cwdOldParent = NULL;
+    struct st_directory *cwdNewParent = NULL;
+    char *oldParent = malloc(DIRMAX_LEN + 1);
+    int nbBlocksOld = 0;
+    int nbBlocksNew = 0;
+    char *fileName = NULL;
+
+    if (argcnt != 3 || argvec[0] == NULL || argvec[1] == NULL) {
+        printf("Error wrong format\n");
+        return (-1);
+    }
+
+    fileName = calloc(strlen(argvec[0]), sizeof(char));
+    if (oldParent == NULL || fileName == NULL) {
+        printf("Error while allocation the memory\n");
+        return (-1);
+    }
+    fileName = fetchDirName(argvec[0], fileName);
+    if (parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, argvec[0]) == NULL)
+        return (-1);
+    oldParent = parsePathName(argvec[1], oldParent);
+    if (parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, argvec[1]) == NULL)
+        return (-1);
+    cwdOldParent = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, oldParent);
+    cwdNewParent = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, argvec[1]);
+    if (cwdOldParent == NULL || cwdNewParent == NULL)
+        return (-1);
+    nbBlocksOld = (cwdOldParent[0].sizeDirectory / returnVCBRef()->blockSize) + 1;
+    nbBlocksNew = (cwdNewParent[0].sizeDirectory / returnVCBRef()->blockSize) + 1;
+    for (int i = 0; i != cwdOldParent[0].nbDir; i++) {
+        if (strcmp(cwdOldParent[0].name, fileName) == 0) {
+            for (int y = 0; y != cwdNewParent[0].nbDir; y++) {
+                if (cwdNewParent[y].isFree == TRUE) {
+                    cwdNewParent[y] = cwdOldParent[i];
+                    cwdOldParent[i].isFree = TRUE;
+                    LBAwrite(cwdOldParent, nbBlocksOld, cwdOldParent[0].startBlockNb);
+                    LBAwrite(cwdNewParent, nbBlocksNew, cwdNewParent[0].startBlockNb);
+                    return (0);
+                }
+            }
+        }
+    }
+    return (-1);
 #endif
 	return 0;
 	}
