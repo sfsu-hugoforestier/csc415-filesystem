@@ -4,19 +4,17 @@
 * Student ID: 916835002
 * Project: Basic File System
 *
-* File: fsDirOperations.h
+* File: fsDirOperations.c
 *
 * Description:
 * Directory operations and neccessary helper functions for directory traversal
-* Wanted to make linker functions to the shell. Undefined reference errors in fs 
+* functions for fs_opendir(), fs_readdir(), fs_closedir()
 **************************************************************/
 
 #include "fsDirOperations.h"
 #include "vcb.h"
 #include "fsParsePath.h"
 #include "mfs.h"
-
-struct fs_diriteminfo *dirInfo;
 
 fdDir *fs_openDir(const char *name) {
     st_vcb *sVCB = returnVCBRef();
@@ -28,22 +26,24 @@ fdDir *fs_openDir(const char *name) {
     //parsePath();
     if (fDir == NULL){
         printf("Error mallocing fDir");
-        return NULL;
+        return -1;
     }
 
     incomingDir = parsePath(sVCB->startDirectory, sVCB->blockSize, name);
     if (incomingDir == NULL) {
         printf("Error locating directory");
         return (NULL);
+    } else if (incomingDir->isDirectory == FALSE) {
+        printf("Not a directory");
+        return 0;
     }
-
     //first directory in open at block location with our nDir will be written over
     printf("--------------Directory Found----------------\n");
     fDir->directoryStartLocation = incomingDir->startBlockNb;
     fDir->dirEntryPosition = incomingDir->nbDir;
     fDir->d_reclen = incomingDir->sizeDirectory;
-    fDir->fs_dirItemInfoPointer = &dirInfo;
-    return(&fDir);
+    fDir->fs_dirItemInfoPointer = incomingDir->isDirectory;
+    return(fDir);
 }
 
 struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
@@ -53,7 +53,7 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
     index = 0;
     if (dirInfo == NULL) {
         printf("Error while mallocing dirInfo\n");
-        return (NULL);
+        return (-1);
     }
     // TODO: assignment makes integer from pointer without a cast 
     if (dirp->directoryStartLocation = NULL){
@@ -75,6 +75,7 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
 
 int fs_closedir(fdDir *dirp) {
     free(dirp);
+    dirp = NULL;
     return 0;
 }
 
