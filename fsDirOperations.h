@@ -10,8 +10,8 @@
 * Directory operations
 *
 **************************************************************/
-#ifndef PARSE_PATH_H_
-#define PARSE_PATH_H_
+#ifndef FSDIROPERATIONS_H_
+#define FSDIROPERATIONS_H_
 
 #include "fsDirectory.h"
 #include "fsLow.h"

@@ -20,8 +20,6 @@ fdDir *fs_opendir(const char *name) {
     st_vcb *sVCB = returnVCBRef();
     fdDir *fDir = malloc(sizeof(fdDir));
     struct st_directory * incomingDir = NULL;
-    //  TODO: ERROR implicit declaration of function ‘parsePath’
-    //  TODO: ERROR initialization makes pointer from integer without a cast
     // CHECK IF VALUE RETURNED CORRECT OR NOT
     //parsePath();
     if (fDir == NULL){
@@ -40,17 +38,25 @@ fdDir *fs_opendir(const char *name) {
     //first directory in open at block location with our nDir will be written over
     printf("--------------Directory Found----------------\n");
     fDir->directoryStartLocation = incomingDir->startBlockNb;
-    fDir->dirEntryPosition = incomingDir->nbDir;
+    fDir->dirEntryPosition = 0;
+    fDir->children = incomingDir->nbDir;
+    //strcpy(name, fDir->path);
     fDir->d_reclen = incomingDir->sizeDirectory;
-    //fDir->fs_dirItemInfoPointer = incomingDir->isDirectory;
     return(fDir);
 }
 
+unsigned short readdirCounter = 0;
+
 struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
     struct fs_diriteminfo *dirInfo = malloc(sizeof(struct fs_diriteminfo) * dirp->d_reclen);
-    //int *dirInfo = *dirp->fs_diriteminfo;
-    short index;
-    index = 0;
+    struct st_directory * nDir;
+    st_vcb *sVCB = returnVCBRef();
+
+    if (readdirCounter == dirp->d_reclen){
+        readdirCounter = 0;
+        return (NULL);
+    }
+
     if (dirInfo == NULL) {
         printf("Error while mallocing dirInfo\n");
         return (NULL);
@@ -61,15 +67,13 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
         dirp->directoryStartLocation = 0;
         return (NULL);
     }
-    //nbDir = dirEntry[0]
-    if(index < dirp->d_reclen)
-    {
-        dirp->directoryStartLocation = dirp->dirEntryPosition;
-        char path[64];
-        strcpy(dirInfo->d_name, path);
-        dirp->d_reclen = dirInfo->d_reclen;
-        index = dirInfo->d_reclen + index;
-    }
+    //nbDir = dirEntry[0], sort through nbDir 0 to whatever
+    //dirp->d_reclen = dirInfo->d_reclen;
+    //char path[64];
+    //nDir = parsePath(dirp->directoryStartLocation, 512, dirp->path);
+    dirp->dirEntryPosition = dirp->dirEntryPosition + 1;
+    strcpy(dirInfo->d_name, dirp);
+    readdirCounter = readdirCounter + dirInfo->d_reclen;
     return (dirInfo);
 }
 
