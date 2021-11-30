@@ -182,6 +182,8 @@ int createDir(int nbDir, int index, const char *pathname) {
     LBAwrite(nDir, nbBlocks, iBlock);
     LBAwrite(prevDir, nbBlocks, prevDir[0].startBlockNb);
 
+    printf("1: nbBlocks: %i iBlock: %i\n2: nbBlocks: %i iBlock: %i\n", nbBlocks, prevDir[0].startBlockNb, nbBlocks, iBlock);
+    printDirectory(prevDir);
     printDirectory(nDir);
     free(nDir);
     nDir = NULL;
