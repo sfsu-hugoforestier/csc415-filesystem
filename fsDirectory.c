@@ -246,8 +246,9 @@ int fs_mkdir(const char *pathname, mode_t mode) {
                 sCWD = NULL;
                 cwDir = NULL;
                 folderName = NULL;
-                return (0);
+                return (-1);
             }
+            break;
         }
     }
 
