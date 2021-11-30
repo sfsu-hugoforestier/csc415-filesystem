@@ -47,6 +47,9 @@ char *remove_extra_dir(char *tmp_path) {
     }
 
     char *tmp = malloc(sizeof(char) * strlen(tmp_path));
+
+    printf("extra dir tmp_path: %s\n", tmp_path);
+
     if (tmp_path[0] == '\0')
         strcpy(tmp, "/");
     else
@@ -106,17 +109,6 @@ void remove_extra_slash(char * path)
     free(temp);
 }
 
-// rVCB->startDirectory
-//st_vcb *getref() {
-//    return sVCB;
-//}
-
-//int freeBlockSize;
-//uint64_t blockSize;
-//uint64_t numberOfBlocks;
-//uint64_t signature;
-//int indexFreeSpace;
-//int startDirectory;
 void printdir(struct st_directory* tmp) {
     printf("\n\n");
     printf("nbDir [%d]\n", tmp->nbDir);
