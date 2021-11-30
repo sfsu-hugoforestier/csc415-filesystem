@@ -27,7 +27,7 @@ void printDirectory(struct st_directory *dir) {
 void printInfoDirectory(struct st_directory *dir) {
     for (int i = 0; i != dir[0].nbDir; i++) {
         if (strlen(dir[i].name) != 0) {
-            printf("Name: %s\ncreationName: %i\nlastModDate: %i\nisdirectory: %i\nSizeDirectory: %i\n isFree: %i\nnbDir: %i\nstartBlockNb: %i\n", dir[i].name, dir[i].creationDate,
+            printf("Name: %s\ncreationName: %li\nlastModDate: %li\nisdirectory: %i\nSizeDirectory: %i\n isFree: %i\nnbDir: %i\nstartBlockNb: %i\n", dir[i].name, dir[i].creationDate,
             dir[i].lastModDate, dir[i].isDirectory, dir[i].sizeDirectory,
             dir[i].isFree, dir[i].nbDir, dir[i].startBlockNb);
         }

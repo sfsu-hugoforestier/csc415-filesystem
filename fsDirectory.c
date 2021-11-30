@@ -108,7 +108,7 @@ int initializeDirectories(st_vcb *rVCB, int blockSize, int numberOfBlocks) {
             end = 1;
         }
     }
-    sDir = calloc(nbDir, sizeof(struct st_directory));
+    sDir = calloc(nbDir, sizeof(struct st_directory) + 1);
     if (sDir == NULL) {
         printf("Error while allocating the memory for sDir\n");
         return (-1);
@@ -151,8 +151,8 @@ struct st_directory *initializeNewDir(struct st_directory *nDir, int iBlock, str
 
 int createDir(int nbDir, int index, const char *pathname) {
     //create new dir
-    struct st_directory *nDir = calloc(nbDir, sizeof(struct st_directory));
-    struct st_directory *prevDir = calloc(nbDir, sizeof(struct st_directory));
+    struct st_directory *nDir = calloc(nbDir, sizeof(struct st_directory) + 1);
+    struct st_directory *prevDir = calloc(nbDir, sizeof(struct st_directory) + 1);
     st_vcb *VCBRef = returnVCBRef();
     int iBlock = 0;
     unsigned int nbBlocks = 0;
@@ -169,10 +169,6 @@ int createDir(int nbDir, int index, const char *pathname) {
     parsedFolderName = fetchDirName(pathname, parsedFolderName);
     prevDir = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, parsedPathName);
     nbBlocks = (prevDir[0].sizeDirectory / VCBRef->blockSize) + 1;
-
-    for (int i = 0; i != nbDir; i++)
-        nDir[i].isFree = TRUE;
-
     iBlock = getFreeSpace(VCBRef, nbBlocks, VCBRef->blockSize, VCBRef->numberOfBlocks);
     nDir = initializeNewDir(nDir, iBlock, prevDir);
     prevDir[index].nbDir = nbDir;
@@ -186,6 +182,9 @@ int createDir(int nbDir, int index, const char *pathname) {
     LBAwrite(nDir, nbBlocks, iBlock);
     LBAwrite(prevDir, nbBlocks, prevDir[0].startBlockNb);
 
+    printf("1: nbBlocks: %i iBlock: %i\n2: nbBlocks: %i iBlock: %i\n", nbBlocks, prevDir[0].startBlockNb, nbBlocks, iBlock);
+    printDirectory(prevDir);
+    printDirectory(nDir);
     free(nDir);
     nDir = NULL;
     return (0);
@@ -214,9 +213,11 @@ int fs_mkdir(const char *pathname, mode_t mode) {
         return (-1);
     }
     folderName = fetchDirName(pathname, folderName);
+    printf("AAAA");
+    fflush(NULL);
     //Check if dir is already created
     for(int i = 0; i != cwDir[0].nbDir; i++) {
-        if (strcmp(cwDir[i].name, folderName) == 0) {
+        if (strcmp(cwDir[i].name, folderName) == 0 && cwDir[i].isFree != TRUE) {
             printf("ERROR: FILE already created\n");
             free(sCWD);
             free(folderName);
@@ -228,9 +229,18 @@ int fs_mkdir(const char *pathname, mode_t mode) {
         }
     }
 
+    printf("AAAA");
+    fflush(NULL);
+    printf("cwDir name: %lu, free %i, nbdir %i", cwDir[0].creationDate, cwDir[0].isFree, cwDir[0].nbDir);
+    printf("ldpmlsdls");
+    fflush(NULL);
     //No child - create directory
     for(int i = 0; i != cwDir[0].nbDir; i++) {
+        printf("BBBBBB");
+        fflush(NULL);
         if(cwDir[i].isFree == TRUE) {
+            printf("CCCCCCC");
+            fflush(NULL);
             result = createDir(cwDir[0].nbDir, i, pathname);
             if(result < 0) {
                 free(sCWD);
@@ -244,12 +254,23 @@ int fs_mkdir(const char *pathname, mode_t mode) {
             break;
         }
     }
+    printf("VVVVV");
+    fflush(NULL);
     free(sCWD);
     free(cwDir);
     //free(folderName);
     sCWD = NULL;
     cwDir = NULL;
     folderName = NULL;
+    return (0);
+}
+
+int findChildren(struct st_directory *nDir) {
+    for (int i = 0; i != nDir[0].nbDir; i++) {
+        if (strlen(nDir[i].name) != 0 &&
+        strcmp(nDir[i].name, ".") != 0 && strcmp(nDir[i].name, "..") != 0)
+            return (1);
+    }
     return (0);
 }
 
@@ -262,7 +283,14 @@ int fs_rmdir(const char *pathname){
     char pathNameHolder[64];
     int found = 0;
     st_vcb *VCBRef = returnVCBRef();
+    char * dir_buf = malloc(DIRMAX_LEN + 1);
+    unsigned int nbBlocks = 0;
+    char *cwd = malloc(DIRMAX_LEN + 1);
 
+    if (dir_buf == NULL || cwd == NULL) {
+        printf("Error while mallocing\n");
+        return (-1);
+    }
     strcpy(pathNameHolder, pathname);
     nDir = parsePath(VCBRef->startDirectory, VCBRef->blockSize, pathNameHolder);
 
@@ -272,16 +300,14 @@ int fs_rmdir(const char *pathname){
     }
 
     //if it has children - return error not empty
-    if(nDir[0].nbDir > 1){
-        printf("ERROR: %s has children files\nCannot delete\n",nDir[0].name);
+    if (findChildren(nDir)) {
+        printf("ERROR: Directory has children files\nCannot delete\n");
         return -1;
     }
 
     //else kill Dir
     //get cwd
-    char * dir_buf = malloc (DIRMAX_LEN +1);
-    char *cwd = malloc(DIRMAX_LEN +1);
-    cwd = fs_getcwd(dir_buf,DIRMAX_LEN);
+    cwd = fs_getcwd(dir_buf, DIRMAX_LEN);
     nCwd = parsePath(VCBRef->startDirectory, VCBRef->blockSize, cwd);
 
     //search cwd for dir to delete
@@ -297,10 +323,12 @@ int fs_rmdir(const char *pathname){
     }
 
     //Reset freespace map bit
-    unsigned int nbBlocks = (nDir[0].sizeDirectory/ VCBRef->blockSize) + 1;
-    freeSpace(nDir->startBlockNb,nbBlocks);
+    nbBlocks = (nDir[0].sizeDirectory/ VCBRef->blockSize) + 1;
 
-    free (dir_buf);
+    printf("startBlockNb: %i\tnbBlocks: %i\n", nDir[0].startBlockNb, nbBlocks);
+    freeSpace(nDir[0].startBlockNb, nbBlocks);
+
+    //free (dir_buf);
     dir_buf = NULL;
     free (cwd);
     cwd = NULL;

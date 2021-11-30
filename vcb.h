@@ -14,6 +14,7 @@
 #define VCB_H_
 
 #include <stdint.h>
+#include <stddef.h>
 
 typedef struct vcb {
     int freeBlockSize;
