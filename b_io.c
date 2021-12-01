@@ -79,28 +79,31 @@ b_io_fd b_open (char * filename, int flags) {
     
     b_io_fd fd = b_getFCB();				// get our own file descriptor
     // check for error - all used FCB's
-    b_fcb* fcb = &fcbArray[i]; //do you want the return? changed from i
+    //b_fcb* fcb = &fcbArray[i]; //do you want the return? changed from i
     
     /*
     fcb->cwdSave = fs_getcwd();
     fs_setcwd(filename);
     */
     //If file name doesnt exist, make one routine to make here:
-    fcb->dir = parsePath(VCBRef->startDirectory, VCBRef->blockSize, filename);
+    fd->dir = parsePath(VCBRef->startDirectory, VCBRef->blockSize, filename);
+
     //Structure has a result on if the dir exists. Likey not to start
-    if(fcb->dir == NULL)
-    {   
+    if(fd->dir == NULL) {   
         printf("Didn't find filename\n");
-        fcb->cwdSave = fs_getcwd(); //grab from nearest dir from failed find
-    } else {
+        fd->cwdSave = fs_getcwd(); //grab from nearest dir from failed find
+    } 
+    else {
 
     }
     
-    fcb->dir; // equals dir reference of filename (GetFileInfo(filename))
-    fcb->buf; //equals dir of filename
-    fcb->curBlock; //equals to fileName starting block in Dir
-    fcb->index = 0; 
-    fcb->buflen = 0; 
+     //equals dir reference of filename (GetFileInfo(filename))
+
+    fd->buf; //equals dir of filename
+    fd->curBlock = fd->dir->startBlockNb //equals to fileName starting block in Dir
+    
+    fd->index = 0; 
+    fd->buflen = 0; 
     
     return (fd);						// all set
 	}
