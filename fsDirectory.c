@@ -188,10 +188,6 @@ int createDir(int nbDir, int index, const char *pathname) {
     prevDir[index].sizeDirectory = prevDir[0].sizeDirectory;
     LBAwrite(nDir, nbBlocks, iBlock);
     LBAwrite(prevDir, nbBlocks, prevDir[0].startBlockNb);
-
-    printDirectory(prevDir);
-    printDirectory(nDir);
-
     free(nDir);
     nDir = NULL;
     return (0);

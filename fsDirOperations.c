@@ -37,10 +37,8 @@ fdDir *fs_opendir(const char *name) {
         return (NULL);
     }
     //first directory in open at block location with our nDir will be written over
-    printf("--------------Directory Found----------------\n");
     fDir->directoryStartLocation = incomingDir->startBlockNb;
     fDir->dirEntryPosition = 0;
-    //strcpy(name, fDir->path);
     fDir->d_reclen = incomingDir->nbDir;
     strcpy(fDir->directoryPath, name);
     return(fDir);

@@ -191,7 +191,6 @@ int fs_setcwd(char *buf) {
 //    printdir(tmp_dir);
 
 //    printf("\n[LOG] DEBUG \n");
-    printDirectory(tmp_dir);
 //    printf("\n[LOG] DEBUG \n");
 
 //    printf(" [AFTER] tmp path = %s\n", tmppath);
