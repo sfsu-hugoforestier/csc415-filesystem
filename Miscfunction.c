@@ -184,8 +184,6 @@ int fs_setcwd(char *buf) {
     if (tmp_dir == NULL)
         return (-1);
 
-    // TODO add a check of is a dir or not
-
     if (tmp_dir->isDirectory == 0)
         return (-1);
 //    printdir(tmp_dir);
@@ -195,7 +193,6 @@ int fs_setcwd(char *buf) {
 
 //    printf(" [AFTER] tmp path = %s\n", tmppath);
 
-// TODO do  a FREE of path
     if (strcmp(buf, "."))
         MyPath = tmppath;
 //    printf("my path = %s\n", MyPath);
