@@ -85,38 +85,34 @@ dispatch_t dispatchTable[] = {
 static int dispatchcount = sizeof (dispatchTable) / sizeof (dispatch_t);
 
 // Display files for use by ls command
-int displayFiles (fdDir * dirp, int flall, int fllong)
-	{
+int displayFiles (fdDir * dirp, int flall, int fllong) {
 #if (CMDLS_ON == 1)
 	if (dirp == NULL)	//get out if error
 		return (-1);
 
-	struct fs_diriteminfo * di;
-	struct fs_stat statbuf;
+    struct fs_diriteminfo * di;
+    struct fs_stat statbuf;
 
-	di = fs_readdir (dirp);
-	//printf("\n");
-	while (di != NULL)
-		{
-		if ((di->d_name[0] != '.') || (flall)) //if not all and starts with '.' it is hidden
-			{
-			if (fllong)
-				{
-				fs_stat (di->d_name, &statbuf);
-				printf ("%s    %9ld   %s\n", fs_isDir(di->d_name)?"D":"-", statbuf.st_size, di->d_name);
-				}
-			else
-				{
-            if (strlen(di->d_name) != 0)
-				    printf ("%s\n", di->d_name);
-				}
-			}
-		di = fs_readdir (dirp);
-		}
-	fs_closedir (dirp);
-#endif
-	return 0;
-	}
+    di = fs_readdir (dirp);
+    //printf("\n");
+    while (di != NULL) {
+        if ((di->d_name[0] != '.') || (flall)) {
+            if (fllong) {
+                if (strlen(di->d_name) != 0) {
+                    fs_stat (di->d_name, &statbuf);
+                    printf ("%s    %9ld   %s\n", fs_isDir(di->d_name)?"D":"-", statbuf.st_size, di->d_name);
+                }
+            } else {
+                if (strlen(di->d_name) != 0)
+                    printf ("%s\n", di->d_name);
+            }
+        }
+        di = fs_readdir (dirp);
+    }
+    fs_closedir (dirp);
+    #endif
+    return 0;
+}
 
 
 /****************************************************

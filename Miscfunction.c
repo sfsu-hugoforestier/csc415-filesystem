@@ -297,7 +297,7 @@ int fs_delete(char* filename) {
 
     // search cwd for dir to delete
     for(int i = 0; i != nCwd[0].nbDir; i++){
-        if(strcmp(nCwd[i].name, filename) == 0 && && nCwd[i].isDirectory == 0){
+        if(strcmp(nCwd[i].name, filename) == 0 && nCwd[i].isDirectory == 0){
             nCwd[i].isFree = TRUE;
             found = 1;
         }
