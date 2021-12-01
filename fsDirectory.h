@@ -16,6 +16,7 @@
 #define DIRECTORY_ENTRIES (50)
 #define TRUE (1)
 #define FALSE (0)
+#define DIRMAX_LEN 4096
 
 #include <time.h>
 #include <stdlib.h>
@@ -25,8 +26,6 @@ struct st_directory {
     int nbDir;
     int isFree;
     int startBlockNb;
-    int id;
-    int parentId;
     int isDirectory;
     int sizeDirectory;
     time_t creationDate;
@@ -35,5 +34,7 @@ struct st_directory {
 };
 
 int initializeDirectories(st_vcb *rVCB, int blockSize, int numberOfBlocks);
+char *parsePathName(const char *pathname, char *parsedPath);
+char *fetchDirName(const char *pathname, char *folderName);
 
 #endif

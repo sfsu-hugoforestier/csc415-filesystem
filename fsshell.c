@@ -25,9 +25,11 @@
 #include <getopt.h>
 #include <string.h>
 
+#include "fsParsePath.h"
 #include "fsLow.h"
 #include "mfs.h"
-
+#include "fsDirOperations.h"
+#include "fsUtils.h"
 
 
 #define SINGLE_QUOTE	0x27
@@ -36,16 +38,15 @@
 #define DIRMAX_LEN		4096
 
 /****   SET THESE TO 1 WHEN READY TO TEST THAT COMMAND ****/
-#define CMDLS_ON	0
+#define CMDLS_ON	1
 #define CMDCP_ON	0
-#define CMDMV_ON	0
-#define CMDMD_ON	0
-#define CMDRM_ON	0
+#define CMDMV_ON	1
+#define CMDMD_ON	1
+#define CMDRM_ON	1
 #define CMDCP2L_ON	0
 #define CMDCP2FS_ON	0
-#define CMDCD_ON	0
-#define CMDPWD_ON	0
-
+#define CMDCD_ON	1
+#define CMDPWD_ON	1
 
 typedef struct dispatch_t
 	{
@@ -84,37 +85,34 @@ dispatch_t dispatchTable[] = {
 static int dispatchcount = sizeof (dispatchTable) / sizeof (dispatch_t);
 
 // Display files for use by ls command
-int displayFiles (fdDir * dirp, int flall, int fllong)
-	{
+int displayFiles (fdDir * dirp, int flall, int fllong) {
 #if (CMDLS_ON == 1)
 	if (dirp == NULL)	//get out if error
 		return (-1);
 
-	struct fs_diriteminfo * di;
-	struct fs_stat statbuf;
+    struct fs_diriteminfo * di;
+    struct fs_stat statbuf;
 
-	di = fs_readdir (dirp);
-	printf("\n");
-	while (di != NULL)
-		{
-		if ((di->d_name[0] != '.') || (flall)) //if not all and starts with '.' it is hidden
-			{
-			if (fllong)
-				{
-				fs_stat (di->d_name, &statbuf);
-				printf ("%s    %9ld   %s\n", fs_isDir(di->d_name)?"D":"-", statbuf.st_size, di->d_name);
-				}
-			else
-				{
-				printf ("%s\n", di->d_name);
-				}
-			}
-		di = fs_readdir (dirp);
-		}
-	fs_closedir (dirp);
-#endif
-	return 0;
-	}
+    di = fs_readdir (dirp);
+    //printf("\n");
+    while (di != NULL) {
+        if ((di->d_name[0] != '.') || (flall)) {
+            if (fllong) {
+                if (strlen(di->d_name) != 0) {
+                    fs_stat (di->d_name, &statbuf);
+                    printf ("%s    %9ld   %s\n", fs_isDir(di->d_name)?"D":"-", statbuf.st_size, di->d_name);
+                }
+            } else {
+                if (strlen(di->d_name) != 0)
+                    printf ("%s\n", di->d_name);
+            }
+        }
+        di = fs_readdir (dirp);
+    }
+    fs_closedir (dirp);
+    #endif
+    return 0;
+}
 
 
 /****************************************************
@@ -276,8 +274,57 @@ int cmd_cp (int argcnt, char *argvec[])
 int cmd_mv (int argcnt, char *argvec[])
 	{
 #if (CMDMV_ON == 1)
-	return -99;
-	// **** TODO ****  For you to implement
+    struct st_directory *cwdOldParent = NULL;
+    struct st_directory *cwdNewParent = NULL;
+    char *oldParent = malloc(DIRMAX_LEN + 1);
+    int nbBlocksOld = 0;
+    int nbBlocksNew = 0;
+    char *fileName = NULL;
+
+    // Making sure that the args are correct
+    if (argcnt != 3 || argvec[1] == NULL || argvec[2] == NULL) {
+        printf("Error wrong format\n");
+        return (-1);
+    }
+
+    fileName = calloc(strlen(argvec[1]), sizeof(char));
+    if (oldParent == NULL || fileName == NULL) {
+        printf("Error while allocation the memory\n");
+        return (-1);
+    }
+
+    // In order to check find the file entry in the parent directory, i fetch the directory's name
+    fileName = fetchDirName(argvec[1], fileName);
+
+    // Make sure that the paths exists
+    if (parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, argvec[1]) == NULL)
+        return (-1);
+    // Fetch the parent directory in order to then change the value of isFree
+    oldParent = parsePathName(argvec[2], oldParent);
+    if (parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, argvec[2]) == NULL)
+        return (-1);
+    // Fetch both the old parent directory and the new one
+    cwdOldParent = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, oldParent);
+    cwdNewParent = parsePath(returnVCBRef()->startDirectory, returnVCBRef()->blockSize, argvec[2]);
+    if (cwdOldParent == NULL || cwdNewParent == NULL)
+        return (-1);
+    nbBlocksOld = (cwdOldParent[0].sizeDirectory / returnVCBRef()->blockSize) + 1;
+    nbBlocksNew = (cwdNewParent[0].sizeDirectory / returnVCBRef()->blockSize) + 1;
+    // Change the values in the directory structs and write it to the volume
+    for (int i = 0; i != cwdOldParent[0].nbDir; i++) {
+        if (strcmp(cwdOldParent[i].name, fileName) == 0) {
+            for (int y = 0; y != cwdNewParent[0].nbDir; y++) {
+                if (cwdNewParent[y].isFree == TRUE) {
+                    cwdNewParent[y] = cwdOldParent[i];
+                    cwdOldParent[i].isFree = TRUE;
+                    LBAwrite(cwdOldParent, nbBlocksOld, cwdOldParent[0].startBlockNb);
+                    LBAwrite(cwdNewParent, nbBlocksNew, cwdNewParent[0].startBlockNb);
+                    return (0);
+                }
+            }
+        }
+    }
+    return (-1);
 #endif
 	return 0;
 	}
@@ -319,10 +366,12 @@ int cmd_rm (int argcnt, char *argvec[])
 	//must determine if file or directory
 	if (fs_isDir (path))
 		{
+		printf("isDir\n");
 		return (fs_rmdir (path));
 		}
 	if (fs_isFile (path))
 		{
+		printf("isFile\n");
 		return (fs_delete(path));
 		}
 
@@ -430,8 +479,7 @@ int cmd_cd (int argcnt, char *argvec[])
 		printf ("Usage: cd path\n");
 		return (-1);
 		}
-	char * path = argvec[1];	//argument
-
+	char *path = argvec[1];	//argument
 	if (path[0] == '"')
 		{
 		if (path[strlen(path)-1] == '"')
@@ -441,7 +489,7 @@ int cmd_cd (int argcnt, char *argvec[])
 			path[strlen(path) - 1] = 0;
 			}
 		}
-	int ret = fs_setcwd (path);
+	int ret = fs_setcwd(path);
 	if (ret != 0)	//error
 		{
 		printf ("Could not change path to %s\n", path);

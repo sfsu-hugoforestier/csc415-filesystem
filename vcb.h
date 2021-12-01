@@ -14,6 +14,7 @@
 #define VCB_H_
 
 #include <stdint.h>
+#include <stddef.h>
 
 typedef struct vcb {
     int freeBlockSize;
@@ -23,5 +24,7 @@ typedef struct vcb {
     int indexFreeSpace;
     int startDirectory;
 } st_vcb;
+
+st_vcb* returnVCBRef();
 
 #endif
