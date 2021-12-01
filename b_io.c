@@ -33,6 +33,8 @@ typedef struct b_fcb {
     char * buf;		//holds the open file buffer
     int index;		//holds the current position in the buffer
     int buflen;		//holds how many valid bytes are in the buffer
+    int curBlock;
+    char * cwdSave;
 } b_fcb;
 
 b_fcb fcbArray[MAXFCBS];
@@ -73,10 +75,30 @@ b_io_fd b_open (char * filename, int flags) {
     if (startup == 0)
         b_init();  //Initialize our system
     
-    returnFd = b_getFCB();				// get our own file descriptor
-                    // check for error - all used FCB's
+    b_io_fd i = b_getFCB();				// get our own file descriptor
+                   // check for error - all used FCB's
 
-    return (returnFd);						// all set
+    b_fcb* fcb = &fcbArray[fd];
+    
+    /*
+    fcb->cwdSave = fs_getcwd();
+    fs_setcwd(filename);
+    */
+
+    
+    //If file name doesnt exist, make one
+    
+    fcb->dir; // equals dir reference of filename (GetFileInfo(filename))
+    fcb->buf; //equals dir of filename
+    fcb->curBlock; //equals to fileName starting block in Dir
+
+    fcb->index = 0;
+    fcb->buflen = 0; 
+    
+
+    
+
+    return (i);						// all set
 	}
 
 
@@ -136,6 +158,8 @@ int b_write (b_io_fd fd, char * buffer, int count) {
 	fcb->index += writeSize;
 	fcb->index %= VCBRef->blockSize;
 
+    LBAWrite(fcb, buffer, writeSize);
+
     if(enoughSize == false){
         //Move to next block
         newBlockResult = getFreeSpace(VCBRef,1,VCBRef->blockSize,VCBRef->numberOfBlocks);
@@ -143,7 +167,7 @@ int b_write (b_io_fd fd, char * buffer, int count) {
             printf("ERROR: We had trouble finding a new free block to write to!");
             return -1;
         }
-
+        
         //reset the index
         fcb->index = 0;
 
@@ -152,7 +176,8 @@ int b_write (b_io_fd fd, char * buffer, int count) {
 
 		fcb->index += secondCopyLength;
 		fcb->index %= VCBRef->blockSize;
-
+        LBAWrite(fcb, buffer, writeRest);
+        
         return writeSize + writeRest;
     }
 
@@ -188,7 +213,21 @@ int b_read (b_io_fd fd, char * buffer, int count) {
     if ((fd < 0) || (fd >= MAXFCBS)) {
         return (-1); 					//invalid file descriptor
     }
-    return (0);	//Change this
+
+    struct b_fcb* fcb = &fcbArray[fd];
+    int sizeLeft =fcb->buflen-fcb->index;
+
+
+    if(count < sizeLeft) {
+        memcpy(buffer, fcb->buf + fcb->index, count);
+        fcb->index += count;
+        return count;
+    }
+    else {
+        // sizeLeft less than the size of buffer
+        return (sizeLeft);	
+    }
+    
 }
 
 // Interface to Close the file

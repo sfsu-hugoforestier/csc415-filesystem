@@ -95,6 +95,13 @@ struct st_directory *initializeNewDir(struct st_directory *nDir, int iBlock, str
 
     return (nDir);
 }
+int getDir(const char * path){
+    st_vcb *VCBRef = returnVCBRef();
+     for (size_t i = 0; i < VCBRef->numberOfBlocks; i++) {
+         
+        
+    } 
+}
 
 int createDir(struct st_directory *cwdDir, int index, const char *pathname) {
     //create new dir
@@ -208,6 +215,7 @@ int fs_rmdir(const char *pathname){
     strcpy(pathNameHolder, pathname);
     printf("pathName - %s\n",pathname);
     nDir = parsePath(VCBRef->startDirectory, VCBRef->blockSize, pathNameHolder);
+    printf("DIR to delete NAME: %s \n",nDir[0].name);
 
     //cant find - return error
     if(nDir == NULL){
@@ -222,7 +230,7 @@ int fs_rmdir(const char *pathname){
 
     //if it has children - return error not empty
     printf("NUM FILES - %d\n",nDir[0].nbDir);
-    if(nDir[0].nbDir > 1){
+    if(nDir[0].nbDir > 2){
         printf("ERROR: %s has children files\nCannot delete\n",pathname);
         return -1;
     }
