@@ -19,13 +19,17 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
 #include "b_io.h"
+#include "fsDirectory.h"
+#include "vcb.h"
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
 
 typedef struct b_fcb {
     /** TODO add al the information you need in the file control block **/
+    st_directory *dir;
     char * buf;		//holds the open file buffer
     int index;		//holds the current position in the buffer
     int buflen;		//holds how many valid bytes are in the buffer
@@ -68,7 +72,7 @@ b_io_fd b_open (char * filename, int flags) {
     printf("in b_open\n");
     if (startup == 0)
         b_init();  //Initialize our system
-
+    
     returnFd = b_getFCB();				// get our own file descriptor
                     // check for error - all used FCB's
 
@@ -92,7 +96,15 @@ int b_seek (b_io_fd fd, off_t offset, int whence) {
 
 // Interface to write function
 int b_write (b_io_fd fd, char * buffer, int count) {
-    printf("in b_write\n");
+    int writeSize = 0;
+    int writeRest = 0;
+    int spaceLeft = 0;
+    int newBlockResult = 0;
+    bool enoughSize = true;
+    st_vcb *VCBRef = returnVCBRef();
+    b_fcb* fcb = &fcbArray[fd];
+
+    //printf("In b_write\n");
     if (startup == 0)
         b_init();  //Initialize our system
 
@@ -100,7 +112,51 @@ int b_write (b_io_fd fd, char * buffer, int count) {
     if ((fd < 0) || (fd >= MAXFCBS)) {
         return (-1); 					//invalid file descriptor
     }
-    return (0); //Change this
+
+    if (fcbArray[fd].dir == NULL)		//File not open for this descriptor
+	{
+		printf("ERROR: File not open for this descriptor\n");	
+		return (-1);
+	}
+
+	spaceLeft = VCBRef->blockSize - fcb->index;
+
+    if(count > spaceLeft){
+        writeSize = spaceLeft;
+        writeRest = count - spaceLeft;
+        enoughSize = false;
+    }
+    else{
+        writeSize = count;
+        enoughSize = true;
+    }
+
+    //write to block
+    memcpy(fcb->index + fcb->buf, buffer, writeSize);
+	fcb->index += writeSize;
+	fcb->index %= VCBRef->blockSize;
+
+    if(enoughSize == false){
+        //Move to next block
+        newBlockResult = getFreeSpace(VCBRef,1,VCBRef->blockSize,VCBRef->numberOfBlocks);
+        if(newBlockResult == -1){
+            printf("ERROR: We had trouble finding a new free block to write to!");
+            return -1;
+        }
+
+        //reset the index
+        fcb->index = 0;
+
+        //writes to block
+        memcpy(fcb->index + fcb->buf, buffer + copyLength, secondCopyLength);
+
+		fcb->index += secondCopyLength;
+		fcb->index %= VCBRef->blockSize;
+
+        return writeSize + writeRest;
+    }
+
+    return writeSize; 
 }
 
 
@@ -137,4 +193,6 @@ int b_read (b_io_fd fd, char * buffer, int count) {
 
 // Interface to Close the file
 void b_close (b_io_fd fd) {
+    free(fcbArray[fd].buff);
+	fcbArray[fd].buff = NULL;
 }

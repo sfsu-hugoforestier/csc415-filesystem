@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "fsLow.h"
 #include "vcb.h"
-
 #include "mfs.h"
 #include "fsParsePath.h"
 #include "fsUtils.h"
@@ -292,6 +292,12 @@ int fs_rmdir(const char *pathname){
     if(nDir == NULL){
         return -1;
     }
+
+    //get cwd
+    char * dir_buf = malloc (DIRMAX_LEN +1);
+    char *cwd = malloc(DIRMAX_LEN +1);
+    cwd = fs_getcwd(dir_buf,DIRMAX_LEN);
+    nCwd = parsePath(VCBRef->startDirectory, VCBRef->blockSize, cwd);
 
     //if it has children - return error not empty
     if (findChildren(nDir)) {
