@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <stdlib.h>			// for malloc
 #include <string.h>			// for memcpy
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -23,18 +24,19 @@
 #include "b_io.h"
 #include "fsDirectory.h"
 #include "vcb.h"
+#include "fsDirectory.h"
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
 
 typedef struct b_fcb {
     /** TODO add al the information you need in the file control block **/
-    st_directory *dir;
+    st_directory *dir; //holding dirInfo for b_FCB
     char * buf;		//holds the open file buffer
+    char * cwdSave; //holds our cwd
     int index;		//holds the current position in the buffer
     int buflen;		//holds how many valid bytes are in the buffer
     int curBlock;
-    char * cwdSave;
 } b_fcb;
 
 b_fcb fcbArray[MAXFCBS];
@@ -66,39 +68,41 @@ b_io_fd b_getFCB () {
 // O_RDONLY, O_WRONLY, or O_RDWR
 b_io_fd b_open (char * filename, int flags) {
     b_io_fd returnFd;
-
+    st_vcb *VCBRef = returnVCBRef();
     //*** TODO ***:  Modify to save or set any information needed
-    //
+    //                 
     //
 
     printf("in b_open\n");
     if (startup == 0)
         b_init();  //Initialize our system
     
-    b_io_fd i = b_getFCB();				// get our own file descriptor
-                   // check for error - all used FCB's
-
-    b_fcb* fcb = &fcbArray[fd];
+    b_io_fd fd = b_getFCB();				// get our own file descriptor
+    // check for error - all used FCB's
+    b_fcb* fcb = &fcbArray[i]; //do you want the return? changed from i
     
     /*
     fcb->cwdSave = fs_getcwd();
     fs_setcwd(filename);
     */
+    //If file name doesnt exist, make one routine to make here:
+    fcb->dir = parsePath(VCBRef->startDirectory, VCBRef->blockSize, filename);
+    //Structure has a result on if the dir exists. Likey not to start
+    if(fcb->dir == NULL)
+    {   
+        printf("Didn't find filename\n");
+        fcb->cwdSave = fs_getcwd(); //grab from nearest dir from failed find
+    } else {
 
-    
-    //If file name doesnt exist, make one
+    }
     
     fcb->dir; // equals dir reference of filename (GetFileInfo(filename))
     fcb->buf; //equals dir of filename
     fcb->curBlock; //equals to fileName starting block in Dir
-
-    fcb->index = 0;
+    fcb->index = 0; 
     fcb->buflen = 0; 
     
-
-    
-
-    return (i);						// all set
+    return (fd);						// all set
 	}
 
 
@@ -122,7 +126,7 @@ int b_write (b_io_fd fd, char * buffer, int count) {
     int writeRest = 0;
     int spaceLeft = 0;
     int newBlockResult = 0;
-    bool enoughSize = true;
+    bool enoughSize = TRUE;
     st_vcb *VCBRef = returnVCBRef();
     b_fcb* fcb = &fcbArray[fd];
 
