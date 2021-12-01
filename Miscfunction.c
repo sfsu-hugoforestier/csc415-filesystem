@@ -29,10 +29,12 @@ st_vcb *returnVCBRef();
 
 
 char *returnPath() {
+    // This function returns the path of the file system.
     return MyPath;
 }
 
 char *remove_extra_dir(char *tmp_path) {
+    // This function removes the extra directory from the path.  like if we put .. in the cd command.
     int slash_count = 1;
     int i = strlen(tmp_path);
 
@@ -80,6 +82,7 @@ char *remove_extra_dir(char *tmp_path) {
 }
 
 void remove_extra_dot(char *path) {
+    // This function removes the extra dot from the path.
     int i = 0;
     int j = 0;
     int len = strlen(path);
@@ -104,8 +107,8 @@ void remove_extra_dot(char *path) {
 }
 
 
-void remove_extra_slash(char * path)
-{
+void remove_extra_slash(char * path) {
+    // This function removes the extra slash from the path.
     int i = 0;
     int j = 0;
     int len = strlen(path);
@@ -130,6 +133,7 @@ void remove_extra_slash(char * path)
 }
 
 void printdir(struct st_directory* tmp) {
+    // This function prints the directory of parsPath.
     printf("\n\n");
     printf("nbDir [%d]\n", tmp->nbDir);
     printf("isFree [%d]\n", tmp->isFree);
@@ -143,6 +147,7 @@ void printdir(struct st_directory* tmp) {
 }
 
 void printvcb(st_vcb *tmp) {
+    // This function prints the vcb structure.
     printf("\n\n");
     printf("freeblockSize[%d]\n", tmp->freeBlockSize);
     printf("blockSize[%lu]\n", tmp->blockSize);
@@ -153,18 +158,11 @@ void printvcb(st_vcb *tmp) {
     printf("\n\n");
 }
 
-void fill_tmp_path(char *path) {
-    char *tmp = malloc(sizeof(char) * strlen(path));
-    if (tmp == NULL) {
-        printf("Error while mallocing\n");
-        return;
-    }
-    strcpy(tmp, path);
-    free(MyPath);
-    MyPath = tmp;
-}
 
 int fs_setcwd(char *buf) {
+    // This function sets the current working directory. by mallocing a tmp path in order to find the dir and
+    // When the dir is find we replace the actual path by the new one.
+
     if (MyPath == NULL) {
         //MyPath = malloc(sizeof(char) * strlen("/") + 1);
         MyPath = calloc(2, sizeof(char));
@@ -190,7 +188,7 @@ int fs_setcwd(char *buf) {
         tmppath = remove_extra_dir(tmppath);
 
 
-    printf(" [BEFORE] tmp path = %s\n", tmppath);
+//    printf(" [BEFORE] tmp path = %s\n", tmppath);
 
     struct st_directory *tmp_dir = parsePath(tmp->startDirectory, tmp->blockSize, tmppath);
     if (tmp_dir == NULL)
@@ -201,9 +199,9 @@ int fs_setcwd(char *buf) {
 
 //    printdir(tmp_dir);
 
-    printf("\n[LOG] DEBUG \n");
-    printDirectory(tmp_dir);
-    printf("\n[LOG] DEBUG \n");
+//    printf("\n[LOG] DEBUG \n");
+//    printDirectory(tmp_dir);
+//    printf("\n[LOG] DEBUG \n");
 
 
 
@@ -219,12 +217,14 @@ int fs_setcwd(char *buf) {
         MyPath = tmppath;
     }
 
-    printf(" [AFTER] tmp path = %s\n", MyPath);
+//    printf(" [AFTER] tmp path = %s\n", MyPath);
 
     return 0;
 }
 
 char *fs_getcwd(char *buf, size_t size) {
+    // This function returns the current working directory.
+
 //    printf("MyPath = %s\n", MyPath);
     if (MyPath == NULL) {
         MyPath = malloc(sizeof(char) + 1);
@@ -245,10 +245,7 @@ char *fs_getcwd(char *buf, size_t size) {
         printf("[LOG] getcwd buff is too small \n");
         return NULL;
     }
-//    if (strlen(MyPath) == 0) {
-//        printf("[LOG] getcwd buff is empty \n");
-//        return NULL;
-//    }
+
     if (size == 0) {
         printf("[LOG] size is 0 \n");
         return NULL;
@@ -262,6 +259,7 @@ char *fs_getcwd(char *buf, size_t size) {
 
 
 int fs_isDir(char *path) {
+    // This function returns 1 if the path is a directory, 0 otherwise.
     st_vcb *myVCB = returnVCBRef();
 
     struct st_directory *return_dir = parsePath(myVCB->startDirectory, myVCB->blockSize, path);
@@ -279,6 +277,7 @@ int fs_isDir(char *path) {
 }
 
 int fs_isFile(char *path) {
+    // This function returns 1 if the path is a file, 0 otherwise.
     if (fs_isDir(path) == 1) {
         return (0);
     }
@@ -287,6 +286,7 @@ int fs_isFile(char *path) {
 
 
 int fs_delete(char* filename) {
+    // This function deletes the file  specified by filename. as the same function for dir.
     //printf("RM_DIR\n");
 
     //find Dir
