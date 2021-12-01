@@ -158,7 +158,6 @@ void printvcb(st_vcb *tmp) {
     printf("\n\n");
 }
 
-
 int fs_setcwd(char *buf) {
     // This function sets the current working directory. by mallocing a tmp path in order to find the dir and
     // When the dir is find we replace the actual path by the new one.
@@ -203,6 +202,7 @@ int fs_setcwd(char *buf) {
 //    printDirectory(tmp_dir);
 //    printf("\n[LOG] DEBUG \n");
 
+//    printf(" [AFTER] tmp path = %s\n", tmppath);
 
 
     if (strcmp(buf, ".")) {
@@ -218,6 +218,7 @@ int fs_setcwd(char *buf) {
     }
 
 //    printf(" [AFTER] tmp path = %s\n", MyPath);
+
 
     return 0;
 }

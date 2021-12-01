@@ -20,15 +20,17 @@ fdDir *fs_opendir(const char *name) {
     st_vcb *sVCB = returnVCBRef();
     fdDir *fDir = malloc(sizeof(fdDir));
     struct st_directory * incomingDir = NULL;
+    char *copyName = malloc(sizeof(name));
+    char *copyName2 = malloc(sizeof(name));
 
     // CHECK IF VALUE RETURNED CORRECT OR NOT
     //parsePath();
-    if (fDir == NULL){
+    if (fDir == NULL || copyName == NULL) {
         printf("Error mallocing fDir\n");
         return (NULL);
     }
-
-    incomingDir = parsePath(sVCB->startDirectory, sVCB->blockSize, (char*)name);
+    strcpy(copyName, name);
+    incomingDir = parsePath(sVCB->startDirectory, sVCB->blockSize, copyName);
     if (incomingDir == NULL) {
         printf("Error locating directory\n");
         return (NULL);

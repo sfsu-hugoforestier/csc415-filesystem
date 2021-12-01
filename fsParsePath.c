@@ -54,9 +54,21 @@ int getNbChar(char *string, char delim) {
     return (count);
 }
 
+char *copyPath(char *tmp, char *path) {
+    tmp = malloc(sizeof(path));
+
+    if (tmp == NULL) {
+        printf("Error while mallocing\n");
+        return (NULL);
+    }
+    strcpy(tmp, path);
+    return (tmp);
+}
+
 struct st_directory *findDirectory(struct st_directory *nDir, char *path, int blockSize) {
     char *token = NULL;
-    char *pToken = path;
+    char *tmp = copyPath(tmp, path);
+    char *pToken = tmp;
     unsigned int end = 0;
     unsigned int nbLooped = 0;
     unsigned int nbDelim = getNbChar(path, '/');
@@ -75,6 +87,7 @@ struct st_directory *findDirectory(struct st_directory *nDir, char *path, int bl
     // Loop through all the directory entries, when we find the one we
     // are looking for we go inside of it and keep going until we reach
     // the directory we want
+
     while ((token = strtok_r(pToken, "/", &pToken))) {
         for (int i = 0; i != nDir[0].nbDir && end != 1; i++) {
             if (strcmp(nDir[i].name, token) == 0 && nDir[i].isFree != TRUE) {
@@ -111,12 +124,14 @@ struct st_directory *parsePath(int startDirectory, int blockSize, char *path) {
     // Ignore if the path starts with a '.'
     if (path[0] == '.')
         path = shiftPath(path);
+
     dir_buf = fs_getcwd(dir_buf, DIRMAX_LEN);
     // Fetch the root directory of the filesystem, in order to start searching
     nDir = getDir(startDirectory, blockSize, nDir);
     // If absolute path we directly search for the path
-    if (path[0] == '/')
+    if (path[0] == '/') {
         return (findDirectory(nDir, path, blockSize));
+    }
     // Fetch the directory struct for the current working directory
     // so that we can start searching for the path, start at the right place
     nDir = findDirectory(nDir, dir_buf, blockSize);
