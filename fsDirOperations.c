@@ -8,7 +8,7 @@
 *
 * Description:
 * Directory operations and neccessary helper functions for directory traversal
-* functions for fs_opendir(), fs_readdir(), fs_closedir()
+* functions for fs_opendir(), fs_readdir(), fs_closedir(), fs_stat()
 **************************************************************/
 
 #include "fsParsePath.h"
@@ -16,20 +16,27 @@
 #include "vcb.h"
 #include "mfs.h"
 
+
 fdDir *fs_opendir(const char *name) {
+    // Reference to our st_vcb which contains data needed for parsePath: 
+    // Location, Blocksize and Path
     st_vcb *sVCB = returnVCBRef();
+    // Malloc a new fdDir structure to return on completion after setting fields
     fdDir *fDir = malloc(sizeof(fdDir));
+    // Struct st_directory pointer initliazed to NULL, which will be used for as landing for our parsePath()
     struct st_directory * incomingDir = NULL;
+    
     char *copyName = malloc(sizeof(name));
     char *copyName2 = malloc(sizeof(name));
 
-    // CHECK IF VALUE RETURNED CORRECT OR NOT
-    //parsePath();
+    // If fdDir fails to malloc or our malloc of char name returns NULL, return NULL and exit
     if (fDir == NULL || copyName == NULL) {
         printf("Error mallocing fDir\n");
         return (NULL);
     }
     strcpy(copyName, name);
+    // Landing for our parsePath and incomingDir will be used to fill our fDir struct
+    // Though nly if it tracks through these two conditions below 
     incomingDir = parsePath(sVCB->startDirectory, sVCB->blockSize, copyName);
     if (incomingDir == NULL) {
         printf("Error locating directory\n");
@@ -38,7 +45,7 @@ fdDir *fs_opendir(const char *name) {
         printf("Not a directory\n");
         return (NULL);
     }
-    //first directory in open at block location with our nDir will be written over
+    // Writing our validated parsePath data into our fDir structure and returning the struct
     fDir->directoryStartLocation = incomingDir->startBlockNb;
     fDir->dirEntryPosition = 0;
     fDir->d_reclen = incomingDir->nbDir;
@@ -46,71 +53,73 @@ fdDir *fs_opendir(const char *name) {
     return(fDir);
 }
 
-unsigned short readdirCounter = 0;
-
 struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
-    struct fs_diriteminfo *dirInfo = malloc(sizeof(struct fs_diriteminfo) * dirp->d_reclen);
-    struct st_directory * nDir;
+    // Reference to our st_vcb which contains data needed for parsePath: 
+    // Location, Blocksize and Path
     st_vcb *sVCB = returnVCBRef();
-
+    // Malloc a new fs_diriteminfo struct to return after setting fields
+    struct fs_diriteminfo *dirInfo = malloc(sizeof(struct fs_diriteminfo) * dirp->d_reclen);
+    // Landing for our parsePath
+    struct st_directory * nDir;
+    // if our malloc fails, return NULL
     if (dirInfo == NULL) {
         printf("Error while mallocing dirInfo\n");
         return (NULL);
     }
-
-    if (dirp->dirEntryPosition > dirp->d_reclen)
+    // if our incoming dirEntryPos is greater than our d_reclen, return NULL
+    if (dirp->dirEntryPosition > dirp->d_reclen) {
         return (NULL);
-    // TODO: assignment makes integer from pointer without a cast
-    if (dirp->directoryStartLocation == -1) { // TO CHANGE PROBABLY
-        //reset to logical block address of '.'
+    }
+    if (dirp->directoryStartLocation == -1) {
+        //Resets to directory start location '.'
         dirp->directoryStartLocation = 0;
         return (NULL);
     }
+    // Landing for our parsePath and nDir will be used to fill our dirInfo 
     nDir = parsePath(sVCB->startDirectory, sVCB->blockSize, dirp->directoryPath);
+    //No path exists, exit
     if (nDir == NULL){
         printf("Error locating directory\n");
         return (NULL);
     }
+    // d_reclen equal to the number of items in this directory
     dirInfo->d_reclen = nDir->nbDir;
+    // populate filetype field in dirInfo depending on isDirectory?
     if (nDir->isDirectory == TRUE) {
         dirInfo->fileType = DT_DIR;
     } else {
         dirInfo->fileType = DT_REG;
     }
-
+    // populate name per position
     strcpy(dirInfo->d_name, nDir[dirp->dirEntryPosition].name);
+    // Increment on our position in the directory and return our filled dirInfo
     dirp->dirEntryPosition++;
     return (dirInfo);
 }
 
 int fs_closedir(fdDir *dirp) {
+    //Free our fdDir struct and return 0
     free(dirp);
     dirp = NULL;
     return 0;
 }
 
 int fs_stat(const char *path, struct fs_stat *buf) {
+    // Reference to our st_vcb which contains data needed for parsePath: 
+    // Location, Blocksize and Path
     st_vcb *sVCB = returnVCBRef();
+    // Landing for parsePath
     struct st_directory *fDir;
-    const char *name = path;
-    // TODO: initialization makes pointer from integer without a cast
     fDir = parsePath(sVCB->startDirectory, sVCB->blockSize, (char*)path);
+    // On failure, return 0, else, fill our fDir with our buffer and return 0
     if (fDir == NULL) {
         printf("Directory stats not retrievable from incoming path\n");
         return 0;
     }
-    //read from our
-    //LBAread(buf, sVCB->numberOfBlocks, sVCB->startDirectory);
-    if(name) {
-        //size in bytes from malloc of directory
+    if(path) {
         buf->st_size = fDir->sizeDirectory;
-        // this will probably nag about casting
         buf->st_createtime = fDir->creationDate;
         buf->st_modtime = fDir->lastModDate;
     }
-    //pull back Hugo's parsepath and set our stats with buffer
-    //fix the reference error in lines 200 of the shell, argvc[k]. arguments coming in ./* for all
-    // A VOIR
     return (0);
-    // two arguments or more
 }
