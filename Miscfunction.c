@@ -35,17 +35,30 @@ char *returnPath() {
 char *remove_extra_dir(char *tmp_path) {
     int slash_count = 1;
     int i = strlen(tmp_path);
+
     for (; i >= 0 ; i--) {
         if (tmp_path[i] == '/' && slash_count == 0) {
             tmp_path[i] = '\0';
             break;
         }
-
         if (tmp_path[i] == '/')
             slash_count--;
     }
 
+
     char *tmp = NULL;
+
+    if (!strcmp(tmp_path, "/..")) {
+        tmp = malloc(sizeof(char) + 1);
+        if (tmp == NULL) {
+            printf("Error while mallocing\n");
+            return (NULL);
+        }
+        strcpy(tmp, "/");
+        free(tmp_path);
+        return tmp;
+    }
+
 
     if (tmp_path[0] == '\0') {
         tmp = malloc(sizeof(char) + 1);
@@ -54,8 +67,7 @@ char *remove_extra_dir(char *tmp_path) {
             return (NULL);
         }
         strcpy(tmp, "/");
-    }
-    else {
+    } else {
         tmp = malloc(sizeof(char) * strlen(tmp_path));
         if (tmp == NULL) {
             printf("Error while mallocing\n");
@@ -117,17 +129,6 @@ void remove_extra_slash(char * path)
     free(temp);
 }
 
-// rVCB->startDirectory
-//st_vcb *getref() {
-//    return sVCB;
-//}
-
-//int freeBlockSize;
-//uint64_t blockSize;
-//uint64_t numberOfBlocks;
-//uint64_t signature;
-//int indexFreeSpace;
-//int startDirectory;
 void printdir(struct st_directory* tmp) {
     printf("\n\n");
     printf("nbDir [%d]\n", tmp->nbDir);
@@ -240,8 +241,9 @@ char *fs_getcwd(char *buf, size_t size) {
 
 
 int fs_isDir(char *path) {
-    st_vcb *tmp = returnVCBRef();
-    struct st_directory *return_dir = parsePath(tmp->startDirectory, tmp->blockSize, path);
+    st_vcb *myVCB = returnVCBRef();
+
+    struct st_directory *return_dir = parsePath(myVCB->startDirectory, myVCB->blockSize, path);
 
     if (return_dir == NULL) {
         printf("[LOG] isDir tmp_dir is NULL \n");
@@ -256,27 +258,64 @@ int fs_isDir(char *path) {
 }
 
 int fs_isFile(char *path) {
-    return 0;
+    if (fs_isDir(path) == 1) {
+        return (0);
+    }
+    return (1);
 }
 
 
 int fs_delete(char* filename) {
-    // REMOVE THE FILE
+    //printf("RM_DIR\n");
+
+    //find Dir
+    struct st_directory *nDir;
+    struct st_directory *nCwd;
+    char pathNameHolder[64];
+    int found = 0;
+    st_vcb *VCBRef = returnVCBRef();
+    char * dir_buf = malloc(DIRMAX_LEN + 1);
+    unsigned int nbBlocks = 0;
+    char *cwd = malloc(DIRMAX_LEN + 1);
+
+    if (dir_buf == NULL || cwd == NULL) {
+        printf("Error while mallocing\n");
+        return (-1);
+    }
+    strcpy(pathNameHolder, filename);
+    nDir = parsePath(VCBRef->startDirectory, VCBRef->blockSize, pathNameHolder);
+
+    //cant find - return error
+    if(nDir == NULL){
+        return -1;
+    }
+
+    // kill Dir
+    // get cwd
+    cwd = fs_getcwd(dir_buf, DIRMAX_LEN);
+    nCwd = parsePath(VCBRef->startDirectory, VCBRef->blockSize, cwd);
+
+    // search cwd for dir to delete
+    for(int i = 0; i != nCwd[0].nbDir; i++){
+        if(strcmp(nCwd[i].name, filename) == 0 && && nCwd[i].isDirectory == 0){
+            nCwd[i].isFree = TRUE;
+            found = 1;
+        }
+    }
+    if(found == 0){
+        printf("ERROR: File %s not Found within Directory %s\n",filename,nCwd[0].name);
+        return -1;
+    }
+
+    // Reset freespace map bit
+    nbBlocks = (nDir[0].sizeDirectory/ VCBRef->blockSize) + 1;
+
+    printf("startBlockNb: %i\tnbBlocks: %i\n", nDir[0].startBlockNb, nbBlocks);
+    freeSpace(nDir[0].startBlockNb, nbBlocks);
+
+    //free (dir_buf);
+    dir_buf = NULL;
+    free (cwd);
+    cwd = NULL;
     return 0;
 }
-//
-//int main() {
-//    // printf("%s\n", path);
-//    fs_setcwd("/");
-//    // printf("%s\n", path);
-////    fs_setcwd("/home");
-////    printf("%s\n", path);
-////    fs_setcwd("france");
-////    fs_setcwd("test");
-////    printf("%s\n", path);
-////
-////
-////    char *tmp = fs_getcwd(malloc(sizeof(char) * 100), 100);
-////    printf("%s\n", tmp);
-//    return 0;
-//}
