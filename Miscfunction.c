@@ -160,7 +160,7 @@ int fs_setcwd(char *buf) {
         strcpy(MyPath, "/");
     }
 
-    printf("\nmy path ==> %s\n", buf);
+//    printf("\nmy path ==> %s\n", buf);
     st_vcb *tmp = returnVCBRef();
 //    printf("[LOG] DEBUG \n");
     if (buf == NULL)
@@ -179,7 +179,7 @@ int fs_setcwd(char *buf) {
         tmppath = remove_extra_dir(tmppath);
 
 
-    printf(" [BEFORE] tmp path = %s\n", tmppath);
+//    printf(" [BEFORE] tmp path = %s\n", tmppath);
     struct st_directory *tmp_dir = parsePath(tmp->startDirectory, tmp->blockSize, tmppath);
     if (tmp_dir == NULL)
         return (-1);
@@ -190,16 +190,16 @@ int fs_setcwd(char *buf) {
         return (-1);
 //    printdir(tmp_dir);
 
-    printf("\n[LOG] DEBUG \n");
+//    printf("\n[LOG] DEBUG \n");
     printDirectory(tmp_dir);
-    printf("\n[LOG] DEBUG \n");
+//    printf("\n[LOG] DEBUG \n");
 
-    printf(" [AFTER] tmp path = %s\n", tmppath);
+//    printf(" [AFTER] tmp path = %s\n", tmppath);
 
 // TODO do  a FREE of path
     if (strcmp(buf, "."))
         MyPath = tmppath;
-    printf("my path = %s\n", MyPath);
+//    printf("my path = %s\n", MyPath);
     return 0;
 }
 
@@ -251,7 +251,7 @@ int fs_isDir(char *path) {
     }
 
     if (return_dir->isDirectory == 0) {
-        printf("[LOG] isDir return_dir->isDirectory == 0 \n");
+//        printf("[LOG] isDir return_dir->isDirectory == 0 \n");
         return (0);
     }
     return (1);
