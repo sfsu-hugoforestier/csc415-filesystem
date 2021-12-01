@@ -29,7 +29,6 @@ st_vcb *returnVCBRef();
 
 
 char *returnPath() {
-
     return MyPath;
 }
 
@@ -69,28 +68,27 @@ char *remove_extra_dir(char *tmp_path) {
 }
 
 void remove_extra_dot(char *path) {
-        int i = 0;
-        int j = 0;
-        int len = strlen(path);
-        char *temp = malloc(sizeof(char) * len);
-        while(path[i] != '\0') {
-            if(path[i] == '.') {
-                if(i+1 == strlen(path)) {
-                    i++;
-                } else {
-                    temp[j] = path[i];
-                    j++;
-                }
+    int i = 0;
+    int j = 0;
+    int len = strlen(path);
+    char *temp = malloc(sizeof(char) * len);
+    while(path[i] != '\0') {
+        if(path[i] == '.') {
+            if(i+1 == strlen(path)) {
+                i++;
             } else {
                 temp[j] = path[i];
                 j++;
             }
-            i++;
+        } else {
+            temp[j] = path[i];
+            j++;
         }
-        temp[j] = '\0';
-        strcpy(path, temp);
-        free(temp);
-
+        i++;
+    }
+    temp[j] = '\0';
+    strcpy(path, temp);
+    free(temp);
 }
 
 

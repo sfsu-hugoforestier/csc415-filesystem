@@ -65,9 +65,7 @@ struct st_directory *findDirectory(struct st_directory *nDir, char *path, int bl
     if (path[0] != '/' && nbDelim == 0) {
         for (int i = 0; i != nDir[0].nbDir && end != 1; i++) {
             if (strcmp(nDir[i].name, path) == 0) {
-                printf("found dir\n");
                 nDir = getDir(nDir[i].startBlockNb, blockSize, nDir);
-                printDirectory(nDir);
                 return (nDir);
             }
         }
@@ -80,7 +78,6 @@ struct st_directory *findDirectory(struct st_directory *nDir, char *path, int bl
     while ((token = strtok_r(pToken, "/", &pToken))) {
         for (int i = 0; i != nDir[0].nbDir && end != 1; i++) {
             if (strcmp(nDir[i].name, token) == 0 && nDir[i].isFree != TRUE) {
-                printf("found dir\n");
                 nDir = getDir(nDir[i].startBlockNb, blockSize, nDir);
                 end = 1;
             }
