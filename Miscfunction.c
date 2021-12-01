@@ -153,6 +153,17 @@ void printvcb(st_vcb *tmp) {
     printf("\n\n");
 }
 
+void fill_tmp_path(char *path) {
+    char *tmp = malloc(sizeof(char) * strlen(path));
+    if (tmp == NULL) {
+        printf("Error while mallocing\n");
+        return;
+    }
+    strcpy(tmp, path);
+    free(MyPath);
+    MyPath = tmp;
+}
+
 int fs_setcwd(char *buf) {
     if (MyPath == NULL) {
         //MyPath = malloc(sizeof(char) * strlen("/") + 1);
@@ -180,22 +191,34 @@ int fs_setcwd(char *buf) {
 
 
 //    printf(" [BEFORE] tmp path = %s\n", tmppath);
+
     struct st_directory *tmp_dir = parsePath(tmp->startDirectory, tmp->blockSize, tmppath);
     if (tmp_dir == NULL)
         return (-1);
 
     if (tmp_dir->isDirectory == 0)
         return (-1);
+
 //    printdir(tmp_dir);
 
 //    printf("\n[LOG] DEBUG \n");
+//    printDirectory(tmp_dir);
 //    printf("\n[LOG] DEBUG \n");
 
-//    printf(" [AFTER] tmp path = %s\n", tmppath);
 
-    if (strcmp(buf, "."))
+
+    if (strcmp(buf, ".")) {
+        free(tmppath);
+        tmppath = malloc(sizeof(char) * (strlen(buf) + strlen(MyPath) + 2));
+        strcpy(tmppath, MyPath);
+        if (strlen(MyPath) > 1)
+            strcat(tmppath, "/");
+        strcat(tmppath, buf);
+        if (!strcmp(buf, ".."))
+            tmppath = remove_extra_dir(tmppath);
         MyPath = tmppath;
-//    printf("my path = %s\n", MyPath);
+    }
+
     return 0;
 }
 
@@ -228,9 +251,9 @@ char *fs_getcwd(char *buf, size_t size) {
         printf("[LOG] size is 0 \n");
         return NULL;
     }
-//    printf("buf = %s\n", buf);
 //    printf("size = %lu\n", size);
     strncpy(buf, MyPath, size);
+//    printf("buf = %s\n", buf);
 //    printf("MyPath = %s\n", MyPath);
     return buf;
 }
