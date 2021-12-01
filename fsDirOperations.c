@@ -24,16 +24,16 @@ fdDir *fs_opendir(const char *name) {
     // CHECK IF VALUE RETURNED CORRECT OR NOT
     //parsePath();
     if (fDir == NULL){
-        printf("Error mallocing fDir");
+        printf("Error mallocing fDir\n");
         return (NULL);
     }
 
     incomingDir = parsePath(sVCB->startDirectory, sVCB->blockSize, (char*)name);
     if (incomingDir == NULL) {
-        printf("Error locating directory");
+        printf("Error locating directory\n");
         return (NULL);
     } else if (incomingDir->isDirectory == FALSE) {
-        printf("Not a directory");
+        printf("Not a directory\n");
         return (NULL);
     }
     //first directory in open at block location with our nDir will be written over
@@ -66,7 +66,7 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp) {
     }
     nDir = parsePath(sVCB->startDirectory, sVCB->blockSize, dirp->directoryPath);
     if (nDir == NULL){
-        printf("Error locating directory");
+        printf("Error locating directory\n");
         return (NULL);
     }
     dirInfo->d_reclen = nDir->nbDir;
@@ -94,7 +94,7 @@ int fs_stat(const char *path, struct fs_stat *buf) {
     // TODO: initialization makes pointer from integer without a cast
     fDir = parsePath(sVCB->startDirectory, sVCB->blockSize, (char*)path);
     if (fDir == NULL) {
-        printf("Directory stats not retrievable from incoming path");
+        printf("Directory stats not retrievable from incoming path\n");
         return 0;
     }
     //read from our
