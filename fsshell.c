@@ -214,7 +214,6 @@ int cmd_ls (int argcnt, char *argvec[])
 	else   // no pathname/filename specified - use cwd
 		{
 		char * path = fs_getcwd(cwd, DIRMAX_LEN);	//get current working directory
-        printf("MY PATH IN LS =====> %s\n", path);
 		fdDir * dirp;
 		dirp = fs_opendir (path);
 		return (displayFiles (dirp, flall, fllong));
