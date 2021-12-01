@@ -289,7 +289,7 @@ int fs_rmdir(const char *pathname){
         return -1;
     }
 
-    //get cwd
+    // Fetch the parent directory
     cwd = fs_getcwd(dir_buf,DIRMAX_LEN);
     nCwd = parsePath(VCBRef->startDirectory, VCBRef->blockSize, cwd);
 
@@ -299,14 +299,11 @@ int fs_rmdir(const char *pathname){
         return -1;
     }
 
-    // Fetch the parent directory
-    cwd = fs_getcwd(dir_buf, DIRMAX_LEN);
-    nCwd = parsePath(VCBRef->startDirectory, VCBRef->blockSize, cwd);
-
     //search cwd for dir to delete
     for(int i = 0; i != nCwd[0].nbDir; i++){
        if(strcmp(nCwd[i].name, pathname) == 0){
           nCwd[i].isFree = TRUE;
+          strcpy(nCwd[i].name, "");
           found = 1;
        }
     }
@@ -320,6 +317,9 @@ int fs_rmdir(const char *pathname){
 
     freeSpace(nDir[0].startBlockNb, nbBlocks);
 
+    LBAwrite(nCwd, nbBlocks, nCwd[0].startBlockNb);
+
+    printf("Successfully removed directory\n");
     //free (dir_buf);
     dir_buf = NULL;
     free (cwd);
