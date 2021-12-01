@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vcb.h"
-//#include "fsInit.h"
 #include "fsParsePath.h"
 #include "fsUtils.h"
 
@@ -168,26 +167,18 @@ int fs_setcwd(char *buf) {
         strcpy(MyPath, "/");
     }
 
-//    printf("\nmy path ==> %s\n", buf);
     st_vcb *tmp = returnVCBRef();
-//    printf("[LOG] DEBUG \n");
     if (buf == NULL)
         return (-1);
 
     char *tmppath = malloc(sizeof(char) * (strlen(buf) + strlen(MyPath) + 2));
 
     strcpy(tmppath, MyPath);
-//    printf(" [BEFORE] tmp path = %s\n", tmppath);
     if (strlen(MyPath) > 1)
         strcat(tmppath, "/");
-//    printf(" [BEFORE] tmp path = %s\n", tmppath);
     strcat(tmppath, buf);
-//    printf(" [BEFORE] tmp path = %s\n", tmppath);
     if (!strcmp(buf, ".."))
         tmppath = remove_extra_dir(tmppath);
-
-
-//    printf(" [BEFORE] tmp path = %s\n", tmppath);
 
     struct st_directory *tmp_dir = parsePath(tmp->startDirectory, tmp->blockSize, tmppath);
     if (tmp_dir == NULL)
@@ -195,15 +186,6 @@ int fs_setcwd(char *buf) {
 
     if (tmp_dir->isDirectory == 0)
         return (-1);
-
-//    printdir(tmp_dir);
-
-//    printf("\n[LOG] DEBUG \n");
-//    printDirectory(tmp_dir);
-//    printf("\n[LOG] DEBUG \n");
-
-//    printf(" [AFTER] tmp path = %s\n", tmppath);
-
 
     if (strcmp(buf, ".")) {
         free(tmppath);
@@ -216,17 +198,12 @@ int fs_setcwd(char *buf) {
             tmppath = remove_extra_dir(tmppath);
         MyPath = tmppath;
     }
-
-//    printf(" [AFTER] tmp path = %s\n", MyPath);
-
-
     return 0;
 }
 
 char *fs_getcwd(char *buf, size_t size) {
     // This function returns the current working directory.
 
-//    printf("MyPath = %s\n", MyPath);
     if (MyPath == NULL) {
         MyPath = malloc(sizeof(char) + 1);
         if (MyPath == NULL) {
@@ -237,7 +214,6 @@ char *fs_getcwd(char *buf, size_t size) {
         strcpy(buf, MyPath);
         return (buf);
     }
-//    printf("MyPath = %s\n", MyPath);
     if (buf == NULL) {
         printf("[LOG] getcwd buff is NULL \n");
         return NULL;
@@ -251,10 +227,7 @@ char *fs_getcwd(char *buf, size_t size) {
         printf("[LOG] size is 0 \n");
         return NULL;
     }
-//    printf("size = %lu\n", size);
     strncpy(buf, MyPath, size);
-//    printf("buf = %s\n", buf);
-//    printf("MyPath = %s\n", MyPath);
     return buf;
 }
 
@@ -271,7 +244,6 @@ int fs_isDir(char *path) {
     }
 
     if (return_dir->isDirectory == 0) {
-//        printf("[LOG] isDir return_dir->isDirectory == 0 \n");
         return (0);
     }
     return (1);
@@ -288,15 +260,13 @@ int fs_isFile(char *path) {
 
 int fs_delete(char* filename) {
     // This function deletes the file  specified by filename. as the same function for dir.
-    //printf("RM_DIR\n");
 
-    //find Dir
     struct st_directory *nDir;
     struct st_directory *nCwd;
     char pathNameHolder[64];
     int found = 0;
     st_vcb *VCBRef = returnVCBRef();
-    char * dir_buf = malloc(DIRMAX_LEN + 1);
+    char *dir_buf = malloc(DIRMAX_LEN + 1);
     unsigned int nbBlocks = 0;
     char *cwd = malloc(DIRMAX_LEN + 1);
 
@@ -335,9 +305,9 @@ int fs_delete(char* filename) {
     printf("startBlockNb: %i\tnbBlocks: %i\n", nDir[0].startBlockNb, nbBlocks);
     freeSpace(nDir[0].startBlockNb, nbBlocks);
 
-    //free (dir_buf);
+    free(dir_buf);
     dir_buf = NULL;
-    free (cwd);
+    free(cwd);
     cwd = NULL;
     return 0;
 }
