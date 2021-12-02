@@ -1,9 +1,9 @@
 /**************************************************************
-* Class:  CSC-415-0# Fall 2021
-* Names:
-* Student IDs:
-* GitHub Name:
-* Group Name:
+* Class:  CSC-415-01 Fall 2021
+* Names: Bhagdeep Sandhu, Adrian De La Rosa, Hugo Forestier, Grégoire Brasseur
+* Student IDs: 918648697, 916835002, 922296112, 922296073
+* GitHub Name: csc415-filesystem-hugoforestier
+* Group Name: Team 5 CSC 415
 * Project: Basic File System
 *
 * File: b_io.c
