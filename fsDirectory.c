@@ -95,13 +95,6 @@ struct st_directory *initializeNewDir(struct st_directory *nDir, int iBlock, str
 
     return (nDir);
 }
-int getDir(const char * path){
-    st_vcb *VCBRef = returnVCBRef();
-     for (size_t i = 0; i < VCBRef->numberOfBlocks; i++) {
-         
-        
-    } 
-}
 
 int createDir(struct st_directory *cwdDir, int index, const char *pathname) {
     //create new dir

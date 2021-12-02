@@ -24,7 +24,7 @@
 #include "b_io.h"
 #include "fsDirectory.h"
 #include "vcb.h"
-#include "fsDirectory.h"
+#include "fsParsePath.h"
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
@@ -37,6 +37,8 @@ typedef struct b_fcb {
     int index;		//holds the current position in the buffer
     int buflen;		//holds how many valid bytes are in the buffer
     int curBlock;
+    int flag;
+    int read;
 } b_fcb;
 
 b_fcb fcbArray[MAXFCBS];
@@ -72,7 +74,7 @@ b_io_fd b_open (char * filename, int flags) {
     //*** TODO ***:  Modify to save or set any information needed
     //                 
     //
-
+    printf("Flag Value - %d\nFileName: %s",flags,filename);
     printf("in b_open\n");
     if (startup == 0)
         b_init();  //Initialize our system
@@ -91,19 +93,27 @@ b_io_fd b_open (char * filename, int flags) {
     //Structure has a result on if the dir exists. Likey not to start
     if(fd->dir == NULL) {   
         printf("Didn't find filename\n");
-        fd->cwdSave = fs_getcwd(); //grab from nearest dir from failed find
+        fs_mkdir(filename,flags);
+        fd->dir = parsePath(VCBRef->startDirectory, VCBRef->blockSize, filename);
+        //fd->cwdSave = fs_getcwd(); //grab from nearest dir from failed find
     } 
-    else {
-
-    }
-    
      //equals dir reference of filename (GetFileInfo(filename))
 
-    fd->buf; //equals dir of filename
+    fd->buf = malloc(VCBRef->blockSize);
+    if(buf == NULL){
+        printf("Error occured while initilazing b_io.c buffer\n");
+        return(-1);
+    }
+
     fd->curBlock = fd->dir->startBlockNb //equals to fileName starting block in Dir
     
     fd->index = 0; 
     fd->buflen = 0; 
+
+    if(flags == 00){
+        fd->read = 1;
+    }
+    fb->flag = 1;
     
     return (fd);						// all set
 	}
@@ -222,15 +232,42 @@ int b_read (b_io_fd fd, char * buffer, int count) {
     }
 
     struct b_fcb* fcb = &fcbArray[fd];
+
+    
     int sizeLeft =fcb->buflen-fcb->index;
 
+    if(fcb->buflen < B_CHUNK_SIZE && sizeLeft <= 0){
+        printf("\n--- EOF Reached ---\n");
+        return 0;
+    }
 
-    if(count < sizeLeft) {
+    if(count <= sizeLeft) {
         memcpy(buffer, fcb->buf + fcb->index, count);
         fcb->index += count;
         return count;
     }
-    else {
+    if(count < sizeLeft){
+        memcpy(buffer, fcb->buf + fcb->index, sizeLeft);
+        fcb->index += count;
+
+        uint64_t sizeRead = LBAread(fcb->buf, 1, fcb->curBlock);
+        if (sizeRead < 0) {
+            return (-1);
+        }
+        
+        fcb->index = 0;
+        fcb->curBlock++;
+        fcb->buflen = sizeRead;
+
+        if(count > sizeLeft){
+            memcpy(buffer, fcb->buf + fcb->index, sizeLeft);
+            fcb->index += sizeLeft;
+
+            return(sizeLeft);
+        }
+        else{
+
+        }
         // sizeLeft less than the size of buffer
         return (sizeLeft);	
     }
