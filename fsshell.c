@@ -31,6 +31,7 @@
 #include "mfs.h"
 #include "fsDirOperations.h"
 #include "fsUtils.h"
+#include "b_io.h"
 
 
 #define SINGLE_QUOTE	0x27
@@ -255,7 +256,7 @@ int cmd_cp (int argcnt, char *argvec[])
 			return (-1);
 		}
 
-
+	
 	testfs_src_fd = b_open (src, O_RDONLY);
 	testfs_dest_fd = b_open (dest, O_WRONLY | O_CREAT | O_TRUNC);
 	do

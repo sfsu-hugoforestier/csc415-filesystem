@@ -16,12 +16,14 @@
 #include <unistd.h>
 #include <stdlib.h>			// for malloc
 #include <string.h>			// for memcpy
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "fsParsePath.h"
 #include "b_io.h"
-#include "fsDirectory.h"
+#include "mfs.h"
 #include "vcb.h"
 
 #define MAXFCBS 20
@@ -29,10 +31,14 @@
 
 typedef struct b_fcb {
     /** TODO add al the information you need in the file control block **/
-    st_directory *dir;
+    struct st_directory *dir; //holding dirInfo for b_FCB
     char * buf;		//holds the open file buffer
+    char * cwdSave; //holds our cwd
     int index;		//holds the current position in the buffer
     int buflen;		//holds how many valid bytes are in the buffer
+    int currentBlock;
+    int endBlock;
+    int sizeGlobal;
 } b_fcb;
 
 b_fcb fcbArray[MAXFCBS];
@@ -63,21 +69,48 @@ b_io_fd b_getFCB () {
 // Modification of interface for this assignment, flags match the Linux flags for open
 // O_RDONLY, O_WRONLY, or O_RDWR
 b_io_fd b_open (char * filename, int flags) {
-    b_io_fd returnFd;
 
+    st_vcb *VCBRef = returnVCBRef();    
+    struct st_directory * fDir = NULL;
     //*** TODO ***:  Modify to save or set any information needed
     //
     //
-
     printf("in b_open\n");
     if (startup == 0)
         b_init();  //Initialize our system
     
-    returnFd = b_getFCB();				// get our own file descriptor
-                    // check for error - all used FCB's
+    b_io_fd i = b_getFCB();    // get our own file descriptor
+    // check for error - all used FCB's
+    /*
+    fcb->cwdSave = fs_getcwd();
+    fs_setcwd(filename);
+    */
+    //b_fcb* fcb = &fcbArray[i]; //do you want the return? changed from i
 
-    return (returnFd);						// all set
-	}
+    //If file name doesnt exist, make one routine to make here:
+    //Structure has a result on if the dir exists. Likey not to start
+    fDir = parsePath( VCBRef->startDirectory, VCBRef->blockSize, (char*)filename);
+    if(fDir == NULL) {   
+        fcbArray[i].cwdSave = fs_getcwd(fcbArray[i].buf, fcbArray[i].buflen); //grab from nearest dir from failed find
+        printf("Didn't find filename\n");
+        printf("Creating: %s" , filename);
+
+        //" in directory: %s", fcbArray[i].cwdSave, "with", flags
+        fcbArray[i].index = i; //equals dir of filename
+        fcbArray[i].buflen = 0; //equals to fileName starting block in Dir
+        fcbArray[i].dir = fDir;
+        fcbArray[i].currentBlock = 0;
+        fcbArray[i].sizeGlobal = 0;
+        //fs_setdir(); 
+        //print found directory
+        return(i);
+    } 
+    
+    //fcbArray[i].curBlock = 0; //equals dir of filename
+    //fcbArray[i].buf = 0; //equals to fileName starting block in Dir 
+    
+    //return (i);						// all set
+}
 
 
 // Interface to seek function
@@ -100,7 +133,8 @@ int b_write (b_io_fd fd, char * buffer, int count) {
     int writeRest = 0;
     int spaceLeft = 0;
     int newBlockResult = 0;
-    bool enoughSize = true;
+    bool enoughSize = TRUE;
+    char copyLength, secondCopyLength;
     st_vcb *VCBRef = returnVCBRef();
     b_fcb* fcb = &fcbArray[fd];
 
@@ -136,6 +170,8 @@ int b_write (b_io_fd fd, char * buffer, int count) {
 	fcb->index += writeSize;
 	fcb->index %= VCBRef->blockSize;
 
+   // LBAWrite(fcb, buffer, writeSize);
+
     if(enoughSize == false){
         //Move to next block
         newBlockResult = getFreeSpace(VCBRef,1,VCBRef->blockSize,VCBRef->numberOfBlocks);
@@ -143,7 +179,7 @@ int b_write (b_io_fd fd, char * buffer, int count) {
             printf("ERROR: We had trouble finding a new free block to write to!");
             return -1;
         }
-
+        
         //reset the index
         fcb->index = 0;
 
@@ -152,14 +188,13 @@ int b_write (b_io_fd fd, char * buffer, int count) {
 
 		fcb->index += secondCopyLength;
 		fcb->index %= VCBRef->blockSize;
-
+        //LBAWrite(fcb, buffer, writeRest);
+        
         return writeSize + writeRest;
     }
 
     return writeSize; 
 }
-
-
 
 // Interface to read a buffer
 
@@ -188,11 +223,43 @@ int b_read (b_io_fd fd, char * buffer, int count) {
     if ((fd < 0) || (fd >= MAXFCBS)) {
         return (-1); 					//invalid file descriptor
     }
-    return (0);	//Change this
+
+    struct b_fcb* fcb = &fcbArray[fd];
+    int sizeLeft =fcb->buflen-fcb->index;
+
+    if(count <= sizeLeft) {
+        printf("\n--- enough buf ---\n");
+        memcpy(buffer, fcb->buf + fcb->index, count);
+        fcb->index += count;
+        return count;
+    }
+    if(count > sizeLeft){
+        printf("\n--- not enough buf ---\n");
+        memcpy(buffer, fcb->buf + fcb->index, sizeLeft);
+        fcb->index += count;
+        fcb->sizeGlobal += count;
+
+        uint64_t sizeRead = LBAread(fcb->buf, 1, fcb->currentBlock);
+        if (sizeRead < 0) {
+            return (-1);
+        }
+        
+        fcb->index = 0;
+        fcb->currentBlock++;
+        fcb->buflen = sizeRead;
+
+        if(count > sizeLeft){
+            memcpy(buffer, fcb->buf + fcb->index, sizeLeft);
+            fcb->index += sizeLeft;
+            return(sizeLeft);
+        }
+        // sizeLeft less than the size of buffer
+        return (sizeLeft);	
+    }
 }
 
 // Interface to Close the file
 void b_close (b_io_fd fd) {
-    free(fcbArray[fd].buff);
-	fcbArray[fd].buff = NULL;
+    free(fcbArray[fd].buf);
+	fcbArray[fd].buf = NULL;
 }
