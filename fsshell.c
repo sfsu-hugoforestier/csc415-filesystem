@@ -25,6 +25,7 @@
 #include <getopt.h>
 #include <string.h>
 
+#include "fsDirectory.h"
 #include "fsParsePath.h"
 #include "fsLow.h"
 #include "mfs.h"
@@ -292,7 +293,7 @@ int cmd_mv (int argcnt, char *argvec[])
         printf("Error while allocation the memory\n");
         return (-1);
     }
-
+    fileName = fetchDirName(argvec[1], fileName);
     // In order to check find the file entry in the parent directory, i fetch the directory's name
     fileName = fetchDirName(argvec[1], fileName);
 
@@ -316,6 +317,7 @@ int cmd_mv (int argcnt, char *argvec[])
             for (int y = 0; y != cwdNewParent[0].nbDir; y++) {
                 if (cwdNewParent[y].isFree == TRUE) {
                     cwdNewParent[y] = cwdOldParent[i];
+                    strcpy(cwdOldParent[i].name, "");
                     cwdOldParent[i].isFree = TRUE;
                     LBAwrite(cwdOldParent, nbBlocksOld, cwdOldParent[0].startBlockNb);
                     LBAwrite(cwdNewParent, nbBlocksNew, cwdNewParent[0].startBlockNb);

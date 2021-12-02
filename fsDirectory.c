@@ -47,10 +47,6 @@ char *fetchDirName(const char *pathname, char *folderName) {
 
     strcpy(folderName, pathname);
     if (nbDelim == 0 || (nbDelim == 1 && (folderName[0] == '/' || folderName[lenPathname] == '/'))) {
-   //     if (sCWD[lenPathname] == '/')
-   //         sCWD[lenPathname] = '\0';
-   //     if (sCWD[0] == '/')
-   //         sCWD++;
         return (folderName);
     }
     for (int i = 0; i != lenPathname; i++) {
@@ -320,7 +316,6 @@ int fs_rmdir(const char *pathname){
     LBAwrite(nCwd, nbBlocks, nCwd[0].startBlockNb);
 
     printf("Successfully removed directory\n");
-    //free (dir_buf);
     dir_buf = NULL;
     free (cwd);
     cwd = NULL;
