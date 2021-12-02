@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <stdlib.h>			// for malloc
 #include <string.h>			// for memcpy
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -23,16 +24,19 @@
 #include "b_io.h"
 #include "fsDirectory.h"
 #include "vcb.h"
+#include "fsDirectory.h"
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
 
 typedef struct b_fcb {
     /** TODO add al the information you need in the file control block **/
-    st_directory *dir;
+    //struct st_directory *dir; //holding dirInfo for b_FCB
     char * buf;		//holds the open file buffer
+    char * cwdSave; //holds our cwd
     int index;		//holds the current position in the buffer
     int buflen;		//holds how many valid bytes are in the buffer
+    int curBlock;
 } b_fcb;
 
 b_fcb fcbArray[MAXFCBS];
@@ -64,19 +68,38 @@ b_io_fd b_getFCB () {
 // O_RDONLY, O_WRONLY, or O_RDWR
 b_io_fd b_open (char * filename, int flags) {
     b_io_fd returnFd;
-
+    struct st_directory * fDir;
+    st_vcb *VCBRef = returnVCBRef();
     //*** TODO ***:  Modify to save or set any information needed
     //
     //
-
     printf("in b_open\n");
     if (startup == 0)
         b_init();  //Initialize our system
     
-    returnFd = b_getFCB();				// get our own file descriptor
-                    // check for error - all used FCB's
+    b_io_fd i = b_getFCB();    // get our own file descriptor
+    // check for error - all used FCB's
+    /*
+    fcb->cwdSave = fs_getcwd();
+    fs_setcwd(filename);
+    */
+    b_fcb* fcb = &fcbArray[i]; //do you want the return? changed from i
+    fDir = parsePath(VCBRef->startDirectory, VCBRef->blockSize, filename);
 
-    return (returnFd);						// all set
+    //If file name doesnt exist, make one routine to make here:
+    //Structure has a result on if the dir exists. Likey not to start
+    if(fDir == NULL) {   
+        printf("Didn't find filename\n");
+        fcb->cwdSave = fs_getcwd(fcb->buf, DIRMAX_LEN); //grab from nearest dir from failed find 
+        printf("Creating: %i" , filename, " in directory: %s", fcb->cwdSave);
+        //print found directory
+        return(i);
+    } 
+    
+    fcbArray[i].curBlock; //equals dir of filename
+    fcbArray[i].buf = 0; //equals to fileName starting block in Dir 
+    
+    return (i);						// all set
 	}
 
 
@@ -100,7 +123,8 @@ int b_write (b_io_fd fd, char * buffer, int count) {
     int writeRest = 0;
     int spaceLeft = 0;
     int newBlockResult = 0;
-    bool enoughSize = true;
+    bool enoughSize = TRUE;
+    char copyLength, secondCopyLength;
     st_vcb *VCBRef = returnVCBRef();
     b_fcb* fcb = &fcbArray[fd];
 
@@ -136,6 +160,8 @@ int b_write (b_io_fd fd, char * buffer, int count) {
 	fcb->index += writeSize;
 	fcb->index %= VCBRef->blockSize;
 
+    LBAWrite(fcb, buffer, writeSize);
+
     if(enoughSize == false){
         //Move to next block
         newBlockResult = getFreeSpace(VCBRef,1,VCBRef->blockSize,VCBRef->numberOfBlocks);
@@ -143,7 +169,7 @@ int b_write (b_io_fd fd, char * buffer, int count) {
             printf("ERROR: We had trouble finding a new free block to write to!");
             return -1;
         }
-
+        
         //reset the index
         fcb->index = 0;
 
@@ -152,7 +178,8 @@ int b_write (b_io_fd fd, char * buffer, int count) {
 
 		fcb->index += secondCopyLength;
 		fcb->index %= VCBRef->blockSize;
-
+        LBAWrite(fcb, buffer, writeRest);
+        
         return writeSize + writeRest;
     }
 
@@ -188,11 +215,25 @@ int b_read (b_io_fd fd, char * buffer, int count) {
     if ((fd < 0) || (fd >= MAXFCBS)) {
         return (-1); 					//invalid file descriptor
     }
-    return (0);	//Change this
+
+    struct b_fcb* fcb = &fcbArray[fd];
+    int sizeLeft =fcb->buflen-fcb->index;
+
+
+    if(count < sizeLeft) {
+        memcpy(buffer, fcb->buf + fcb->index, count);
+        fcb->index += count;
+        return count;
+    }
+    else {
+        // sizeLeft less than the size of buffer
+        return (sizeLeft);	
+    }
+    
 }
 
 // Interface to Close the file
 void b_close (b_io_fd fd) {
-    free(fcbArray[fd].buff);
-	fcbArray[fd].buff = NULL;
+    free(fcbArray[fd].buf);
+	fcbArray[fd].buf = NULL;
 }
