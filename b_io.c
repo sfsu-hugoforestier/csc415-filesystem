@@ -21,22 +21,22 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "fsParsePath.h"
 #include "b_io.h"
-#include "fsDirectory.h"
+#include "mfs.h"
 #include "vcb.h"
-#include "fsDirectory.h"
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
 
 typedef struct b_fcb {
     /** TODO add al the information you need in the file control block **/
-    //struct st_directory *dir; //holding dirInfo for b_FCB
+    struct st_directory *dir; //holding dirInfo for b_FCB
     char * buf;		//holds the open file buffer
     char * cwdSave; //holds our cwd
     int index;		//holds the current position in the buffer
     int buflen;		//holds how many valid bytes are in the buffer
-    int curBlock;
+    int currentBlock;
 } b_fcb;
 
 b_fcb fcbArray[MAXFCBS];
@@ -67,9 +67,9 @@ b_io_fd b_getFCB () {
 // Modification of interface for this assignment, flags match the Linux flags for open
 // O_RDONLY, O_WRONLY, or O_RDWR
 b_io_fd b_open (char * filename, int flags) {
-    b_io_fd returnFd;
-    struct st_directory * fDir;
-    st_vcb *VCBRef = returnVCBRef();
+
+    st_vcb *VCBRef = returnVCBRef();    
+    struct st_directory * fDir = NULL;
     //*** TODO ***:  Modify to save or set any information needed
     //
     //
@@ -83,23 +83,29 @@ b_io_fd b_open (char * filename, int flags) {
     fcb->cwdSave = fs_getcwd();
     fs_setcwd(filename);
     */
-    b_fcb* fcb = &fcbArray[i]; //do you want the return? changed from i
-    fDir = parsePath(VCBRef->startDirectory, VCBRef->blockSize, filename);
+    //b_fcb* fcb = &fcbArray[i]; //do you want the return? changed from i
 
     //If file name doesnt exist, make one routine to make here:
     //Structure has a result on if the dir exists. Likey not to start
+    fDir = parsePath( VCBRef->startDirectory, VCBRef->blockSize, (char*)filename);
     if(fDir == NULL) {   
+        fcbArray[i].cwdSave = fs_getcwd(fcbArray[i].buf, fcbArray[i].buflen); //grab from nearest dir from failed find
         printf("Didn't find filename\n");
-        fcb->cwdSave = fs_getcwd(fcb->buf, DIRMAX_LEN); //grab from nearest dir from failed find 
-        printf("Creating: %i" , filename, " in directory: %s", fcb->cwdSave);
+        printf("Creating: %s" , filename);
+        //" in directory: %s", fcbArray[i].cwdSave, "with", flags
+        fcbArray[i].index = i; //equals dir of filename
+        fcbArray[i].buflen = 0; //equals to fileName starting block in Dir
+        fcbArray[i].dir = fDir;
+        fcbArray[i].currentBlock = 0;
+        //fs_setdir(); 
         //print found directory
         return(i);
     } 
     
-    fcbArray[i].curBlock; //equals dir of filename
-    fcbArray[i].buf = 0; //equals to fileName starting block in Dir 
+    //fcbArray[i].curBlock = 0; //equals dir of filename
+    //fcbArray[i].buf = 0; //equals to fileName starting block in Dir 
     
-    return (i);						// all set
+    //return (i);						// all set
 	}
 
 
@@ -160,7 +166,7 @@ int b_write (b_io_fd fd, char * buffer, int count) {
 	fcb->index += writeSize;
 	fcb->index %= VCBRef->blockSize;
 
-    LBAWrite(fcb, buffer, writeSize);
+   // LBAWrite(fcb, buffer, writeSize);
 
     if(enoughSize == false){
         //Move to next block
@@ -178,7 +184,7 @@ int b_write (b_io_fd fd, char * buffer, int count) {
 
 		fcb->index += secondCopyLength;
 		fcb->index %= VCBRef->blockSize;
-        LBAWrite(fcb, buffer, writeRest);
+        //LBAWrite(fcb, buffer, writeRest);
         
         return writeSize + writeRest;
     }
