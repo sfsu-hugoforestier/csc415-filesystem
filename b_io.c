@@ -37,6 +37,8 @@ typedef struct b_fcb {
     int index;		//holds the current position in the buffer
     int buflen;		//holds how many valid bytes are in the buffer
     int currentBlock;
+    int endBlock;
+    int sizeGlobal;
 } b_fcb;
 
 b_fcb fcbArray[MAXFCBS];
@@ -92,11 +94,13 @@ b_io_fd b_open (char * filename, int flags) {
         fcbArray[i].cwdSave = fs_getcwd(fcbArray[i].buf, fcbArray[i].buflen); //grab from nearest dir from failed find
         printf("Didn't find filename\n");
         printf("Creating: %s" , filename);
+
         //" in directory: %s", fcbArray[i].cwdSave, "with", flags
         fcbArray[i].index = i; //equals dir of filename
         fcbArray[i].buflen = 0; //equals to fileName starting block in Dir
         fcbArray[i].dir = fDir;
         fcbArray[i].currentBlock = 0;
+        fcbArray[i].sizeGlobal = 0;
         //fs_setdir(); 
         //print found directory
         return(i);
@@ -106,7 +110,7 @@ b_io_fd b_open (char * filename, int flags) {
     //fcbArray[i].buf = 0; //equals to fileName starting block in Dir 
     
     //return (i);						// all set
-	}
+}
 
 
 // Interface to seek function
@@ -192,8 +196,6 @@ int b_write (b_io_fd fd, char * buffer, int count) {
     return writeSize; 
 }
 
-
-
 // Interface to read a buffer
 
 // Filling the callers request is broken into three parts
@@ -225,17 +227,35 @@ int b_read (b_io_fd fd, char * buffer, int count) {
     struct b_fcb* fcb = &fcbArray[fd];
     int sizeLeft =fcb->buflen-fcb->index;
 
-
-    if(count < sizeLeft) {
+    if(count <= sizeLeft) {
+        printf("\n--- enough buf ---\n");
         memcpy(buffer, fcb->buf + fcb->index, count);
         fcb->index += count;
         return count;
     }
-    else {
+    if(count > sizeLeft){
+        printf("\n--- not enough buf ---\n");
+        memcpy(buffer, fcb->buf + fcb->index, sizeLeft);
+        fcb->index += count;
+        fcb->sizeGlobal += count;
+
+        uint64_t sizeRead = LBAread(fcb->buf, 1, fcb->currentBlock);
+        if (sizeRead < 0) {
+            return (-1);
+        }
+        
+        fcb->index = 0;
+        fcb->currentBlock++;
+        fcb->buflen = sizeRead;
+
+        if(count > sizeLeft){
+            memcpy(buffer, fcb->buf + fcb->index, sizeLeft);
+            fcb->index += sizeLeft;
+            return(sizeLeft);
+        }
         // sizeLeft less than the size of buffer
         return (sizeLeft);	
     }
-    
 }
 
 // Interface to Close the file
